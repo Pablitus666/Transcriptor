@@ -23,16 +23,16 @@ El sistema está diseñado para entornos donde se requiere **precisión, trazabi
 
 ## 🎯 Características principales
 
-✔ Interfaz gráfica profesional basada en **Tkinter**
-✔ Transcripción automática mediante **Whisper (small, medium, large-v3)**
-✔ Procesamiento en **segundo plano (multiprocessing)**
-✔ Barra de progreso en tiempo real
-✔ Registro detallado del proceso (log interno)
-✔ Soporte para **plantillas DOCX personalizadas**
-✔ Diseño visual institucional (colores, iconografía, efectos HiDPI)
-✔ Bloqueo inteligente de controles durante la ejecución
-✔ Ventanas de diálogo personalizadas (StyledDialog)
-✔ Sistema portable (no requiere instalación tradicional)
+* Interfaz gráfica profesional basada en **Tkinter**
+* Transcripción automática mediante **Whisper (small, medium, large-v3)**
+* Procesamiento en **segundo plano (multiprocessing)**
+* Barra de progreso en tiempo real
+* Registro detallado del proceso (log interno)
+* Soporte para **plantillas DOCX personalizadas**
+* Diseño visual institucional (colores, iconografía, efectos HiDPI)
+* Bloqueo inteligente de controles durante la ejecución
+* Ventanas de diálogo personalizadas (StyledDialog)
+* Sistema portable (no requiere instalación tradicional)
 
 ---
 
@@ -149,7 +149,7 @@ Este proyecto fue diseñado con criterios de:
 
 ## 📄 Licencia
 
-```
+---
 
 ### Licencia privada / institucional
 
@@ -173,6 +173,7 @@ La redistribución, modificación o comercialización requiere autorización exp
 ✔ Estable
 ✔ En producción
 ✔ Orientado a uso profesional
+
 ---
 
 ⭐ Si este proyecto te resulta útil, considera dejar una estrella en el repositorio.
