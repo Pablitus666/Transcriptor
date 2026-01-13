@@ -533,6 +533,20 @@ class TranscriptorGUI:
 if __name__ == "__main__":
     # Necesario para que multiprocessing funcione correctamente en Windows y macOS
     multiprocessing.freeze_support()
+
+    # --- Inicio de la solución con AppUserModelID ---
+    try:
+        from ctypes import windll
+        # Establecer un App User Model ID único para la aplicación.
+        # Esto ayuda a Windows a agrupar las ventanas y usar el icono correcto en la barra de tareas.
+        myappid = 'mi.empresa.transcriptor.1' # Cadena arbitraria pero única
+        windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    except (ImportError, AttributeError):
+        # En caso de que no estemos en Windows o ctypes no esté disponible.
+        pass
+    except Exception as e:
+        print(f"Advertencia: No se pudo establecer el AppUserModelID: {e}")
+    # --- Fin de la solución ---
     
     root = tk.Tk()
     root.withdraw()
