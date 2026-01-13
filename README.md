@@ -3,9 +3,11 @@
 **Sistema de transcripción automática de audios con interfaz gráfica profesional**
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Whisper](https://img.shields.io/badge/OpenAI-Whisper-success)
-![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Whisper](https://img.shields.io/badge/OpenAI-Whisper-black)
+![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6)
+![Build](https://img.shields.io/badge/build-stable-brightgreen)
+![License](https://img.shields.io/badge/license-Private%20Institutional-red)
+![Version](https://img.shields.io/badge/version-1.0.0-blueviolet)
 
 ---
 
