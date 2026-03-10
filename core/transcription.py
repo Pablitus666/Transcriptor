@@ -31,8 +31,10 @@ def iou(a1, a2, b1, b2) -> float:
 def asignar_texto(segments_w, diar) -> List[Dict]:
     """
     Asigna cada segmento de Whisper al hablante correcto usando IOU.
+    Si un segmento no tiene solapamiento, se asigna al hablante previo para evitar pérdida de datos.
     """
     resultado = []
+    last_speaker = None
 
     diar_turnos = [
         (t.start, t.end, speaker)
@@ -43,17 +45,28 @@ def asignar_texto(segments_w, diar) -> List[Dict]:
         mejor_speaker = None
         mejor_overlap = 0
 
-        for start, end, speaker in diar_turnos:
-            overlap = iou(s.start, s.end, start, end)
-            if overlap > mejor_overlap:
-                mejor_overlap = overlap
-                mejor_speaker = speaker
+        # Si no hay turnos de diarización (ej. audio demasiado corto o silencioso), 
+        # asignamos a un hablante genérico para no perder el texto.
+        if not diar_turnos:
+            mejor_speaker = "Hablante 0"
+        else:
+            for start, end, speaker in diar_turnos:
+                overlap = iou(s.start, s.end, start, end)
+                if overlap > mejor_overlap:
+                    mejor_overlap = overlap
+                    mejor_speaker = speaker
 
-        if mejor_speaker and s.text.strip():
+        # Lógica Robusta: Si no hay overlap claro, usar el último hablante detectado
+        # (o el primero de la diarización si es el primer segmento de whisper)
+        if not mejor_speaker:
+            mejor_speaker = last_speaker if last_speaker else (diar_turnos[0][2] if diar_turnos else "Hablante 0")
+
+        if s.text.strip():
             resultado.append({
                 "speaker_raw": mejor_speaker,
                 "text": normalizar_texto(s.text.strip())
             })
+            last_speaker = mejor_speaker
 
     return resultado
 

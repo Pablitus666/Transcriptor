@@ -1,161 +1,127 @@
 import os
 import tkinter as tk
 from tkinter import Toplevel
-from PIL import Image, ImageTk, ImageFilter, ImageOps
+from gui.widgets import create_image_button
+from core import resources
 
 # ===================== PALETA EXACTA DEL SCRIPT MUESTRA =====================
 BG_COLOR = "#023047"
 TEXT_COLOR = "white"
 ACCENT_COLOR = "#fcbf49"
-FONT_FAMILY = "Comic Sans MS"
+FONT_FAMILY = "Segoe UI" # Cambiado a Segoe UI para replicar Stegano exactamente
 
-class AboutWindow:
-    def __init__(self, parent, icon_path=None):
-        self.parent = parent
+class AboutWindow(Toplevel):
+    """ Réplica exacta de la ventana About de Stegano. """
+    def __init__(self, parent, image_manager, icon_path=None):
+        super().__init__(parent)
+        self.image_manager = image_manager
         self.icon_path = icon_path
-        self.info_window = None
-        self.boton_photo = None
-        self.image_cache = {}
         
-        self.robot_path = os.path.join(os.path.dirname(__file__), "..", "images", "robot.png")
-        boton_path = os.path.join(os.path.dirname(__file__), "..", "images", "boton.png")
+        # Ocultar inmediatamente para evitar flash visual
+        self.withdraw()
         
-        if os.path.exists(boton_path):
-            img = ImageTk.PhotoImage(file=boton_path)
-            # Nota: PhotoImage no tiene 'width()' o 'height()', usamos el objeto Image si es necesario.
-            # Aquí, la carga directa es suficiente para el botón, pero el logo/robot necesita PIL.
-            # La lógica de submuestreo del botón original se mantiene por coherencia.
-            temp_img = tk.PhotoImage(file=boton_path)
-            self.boton_photo = temp_img.subsample(
-                max(1, temp_img.width() // 125),
-                max(1, temp_img.height() // 50)
-            )
-
-    def _create_robot_image(self, window):
-        """
-        Procesa la imagen del robot para HiDPI y efectos, y la guarda en caché.
-        Solo se ejecuta una vez.
-        """
-        if 'robot' in self.image_cache:
-            return
-
-        try:
-            tk_scaling = window.tk.call('tk', 'scaling')
-            render_scale = 2.5
-            
-            base_robot = Image.open(self.robot_path).convert("RGBA")
-
-            display_width = 100 
-            final_width = int(display_width * tk_scaling)
-            
-            hd_render_width = int(final_width * render_scale)
-            ratio = hd_render_width / base_robot.width
-            hd_render_height = int(base_robot.height * ratio)
-            
-            hd_robot = base_robot.resize((hd_render_width, hd_render_height), Image.Resampling.LANCZOS)
-
-            # --- Efecto de Relieve (Emboss) ---
-            offset = int(2 * tk_scaling)
-            if offset < 1: offset = 1
-
-            # Crear una base para la composición
-            composite_image = Image.new('RGBA', (hd_robot.width + offset, hd_robot.height + offset), (0, 0, 0, 0))
-            
-            # Obtener el canal alfa como máscara
-            alpha_mask = hd_robot.split()[-1]
-            
-            # Crear capa de sombra (versión oscura de la imagen) y pegarla desplazada
-            shadow_layer = ImageOps.colorize(alpha_mask, black=(0,0,0,0), white=(0,0,0,70)) # Negro semitransparente
-            composite_image.paste(shadow_layer, (offset, offset), alpha_mask)
-            
-            # Crear capa de luz (versión clara de la imagen) y pegarla desplazada
-            highlight_layer = ImageOps.colorize(alpha_mask, black=(0,0,0,0), white=(255,255,255,70)) # Blanco semitransparente
-            composite_image.paste(highlight_layer, (0, 0), alpha_mask)
-
-            # Pegar la imagen original encima, centrada entre la luz y la sombra
-            composite_image.paste(hd_robot, (offset // 2, offset // 2), hd_robot)
-
-            final_image = composite_image.resize((final_width, int(composite_image.height * final_width / composite_image.width)), Image.Resampling.LANCZOS)
-
-            self.image_cache['robot'] = ImageTk.PhotoImage(final_image)
-
-        except Exception as e:
-            print(f"❌ Error procesando la imagen del robot: {e}")
-            try:
-                img = Image.open(self.robot_path)
-                self.image_cache['robot'] = ImageTk.PhotoImage(img)
-            except:
-                pass
-
-
-    def show(self):
-        if self.info_window and self.info_window.winfo_exists():
-            self.info_window.lift()
-            return
-
-        self.info_window = Toplevel(self.parent)
-        self.info_window.withdraw()  # ⛔ evita parpadeo
-        self.info_window.title("Información")
-        self.info_window.configure(bg=BG_COLOR)
-        self.info_window.resizable(False, False)
-        self.info_window.transient(self.parent)
+        self.title("Información")
+        self.geometry("370x230") 
+        self.configure(bg=BG_COLOR)
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
 
         if self.icon_path and os.path.exists(self.icon_path):
-            self.info_window.iconbitmap(self.icon_path)
+            try:
+                self.iconbitmap(self.icon_path)
+            except:
+                pass
+            
+        self._create_widgets()
+        self._center_window(370, 230)
+        self.deiconify()
 
-        self.center_popup(self.info_window, 370, 230)
-        self.info_window.deiconify()  # ✅ mostrar ya centrada
+    def _create_widgets(self):
+        # Réplica exacta de la estructura de Stegano
+        frame_info = tk.Frame(self, bg=BG_COLOR)
+        frame_info.pack(pady=10, padx=10, fill="both", expand=True)
 
-        # Procesar la imagen del robot (solo se ejecuta la primera vez)
-        self._create_robot_image(self.info_window)
+        frame_info.grid_columnconfigure(0, weight=1)
+        frame_info.grid_columnconfigure(1, weight=1)
+        frame_info.grid_rowconfigure(0, weight=1)
+        frame_info.grid_rowconfigure(1, weight=1)
+        frame_info.grid_rowconfigure(2, weight=1)
 
-        frame = tk.Frame(self.info_window, bg=BG_COLOR)
-        frame.pack(padx=10, pady=10)
+        # Robot (160x160) - Tamaño exacto de Stegano, usando recursos modulares
+        robot_path = resources.image_path("robot.png")
+        robot_photo = self.image_manager.load(
+            robot_path, 
+            size=(160, 160), 
+            add_shadow_effect=False, 
+            add_relief_effect=False
+        )
+        
+        if robot_photo:
+            img_label = tk.Label(frame_info, image=robot_photo, bg=BG_COLOR)
+            img_label.image = robot_photo
+            img_label.grid(row=0, column=0, padx=(5, 10), pady=0, rowspan=3, sticky="nsew")
 
-        # Cargar y mostrar la imagen del robot desde la caché
-        if 'robot' in self.image_cache:
-            img_label = tk.Label(frame, image=self.image_cache['robot'], bg=BG_COLOR)
-            img_label.grid(row=0, column=0, rowspan=3, padx=10, pady=5)
-        else:
-            print("❌ No se pudo cargar la imagen del robot desde la caché.")
-
-        # Texto EXACTO
+        # Mensaje: Réplica de Stegano (Segoe UI 14, wraplength 160)
         message = tk.Label(
-            frame,
+            frame_info,
             text="Desarrollado por: \nPablo Téllez A.\n\nTarija - 2026.",
             justify="center",
             bg=BG_COLOR,
             fg=TEXT_COLOR,
             font=(FONT_FAMILY, 14, "bold"),
-            anchor="center"
+            wraplength=160
         )
-        message.grid(row=0, column=1, padx=(2, 8), pady=10, sticky="n")
+        message.grid(row=0, column=1, rowspan=2, sticky="s", pady=(0, 10), padx=(0, 20))
 
-        # Botón Cerrar EXACTO (texto + imagen + hover)
+        # Botón Cerrar: Estructura de Stegano con contenedor rígido
+        boton_path = resources.image_path("boton.png")
+        btn_normal = self.image_manager.load(
+            boton_path, size=(125, 45), add_shadow_effect=True,
+            add_relief_effect=False,
+            shadow_offset=(2, 2), blur_radius=3, border=5
+        )
+
+        btn_holder = tk.Frame(frame_info, bg=BG_COLOR, width=135, height=55)
+        btn_holder.pack_propagate(False)
+        btn_holder.grid(row=2, column=1, sticky="n", pady=(10, 0))
+
         close_btn = tk.Button(
-            frame,
-            text="Cerrar",
-            image=self.boton_photo,
+            btn_holder, 
+            text="Cerrar", 
+            image=btn_normal, 
             compound="center",
-            font=(FONT_FAMILY, 12, "bold"),
-            command=self.info_window.destroy,
-            bg=BG_COLOR,
-            fg=TEXT_COLOR,
-            bd=0,
+            font=(FONT_FAMILY, 12, "bold"), 
+            command=self.destroy,
+            relief="flat",
+            bg=BG_COLOR, 
+            fg=TEXT_COLOR, 
+            bd=0, 
+            padx=0,
+            pady=0,
             cursor="hand2",
-            highlightbackground=ACCENT_COLOR,
-            highlightthickness=2,
-            activebackground=BG_COLOR,
-            activeforeground=ACCENT_COLOR
+            highlightthickness=0,
+            highlightbackground=BG_COLOR,
+            activebackground=BG_COLOR, 
+            activeforeground=ACCENT_COLOR,
+            anchor="center",
+            justify="center",
+            takefocus=False
         )
-        close_btn.grid(row=2, column=1, padx=10, pady=(0, 5), sticky="n")
+        close_btn.place(relx=0.5, rely=0.5, anchor="center")
+        
+        def on_press(e):
+            close_btn.place_configure(rely=0.54)
+        def on_release(e):
+            close_btn.place_configure(rely=0.5)
 
-        # Hover EXACTO
         close_btn.bind("<Enter>", lambda e: close_btn.config(fg=ACCENT_COLOR))
-        close_btn.bind("<Leave>", lambda e: close_btn.config(fg=TEXT_COLOR))
+        close_btn.bind("<Leave>", lambda e: close_btn.config(fg="white"))
+        close_btn.bind("<Button-1>", on_press)
+        close_btn.bind("<ButtonRelease-1>", on_release)
 
-    def center_popup(self, window, width, height):
-        window.update_idletasks()
-        x = (window.winfo_screenwidth() // 2) - (width // 2)
-        y = (window.winfo_screenheight() // 2) - (height // 2)
-        window.geometry(f"{width}x{height}+{x}+{y}")
+    def _center_window(self, width, height):
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")

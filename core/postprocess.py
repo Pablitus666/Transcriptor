@@ -1,25 +1,13 @@
 # core/postprocess.py
 import re
-
-CLAVES_PSICO = [
-    "soy psicólogo",
-    "soy psicóloga",
-    "psicologo del slim",
-    "psicóloga del slim",
-    "psicologo de la defensoría",
-    "psicóloga de la defensoría",
-    "psicologo de defensoría",
-    "psicóloga de defensoría"
-]
-
-# ================= NORMALIZAR TEXTO =================
-def normalizar_texto(t: str) -> str:
-    return re.sub(r"\bleslim\b|\bleslín\b|\bles lim\b", "SLIM", t, flags=re.IGNORECASE)
+from config.settings import CLAVES_PSICO
+from utils.text import normalizar_texto
 
 # ================= IDENTIFICAR PSICÓLOGA =================
 def identificar_psicologa(segmentos: list) -> str:
     """
-    Devuelve el speaker_raw que corresponde a la psicóloga.
+    Busca al profesional (Psicólogo/a) analizando palabras clave en el texto acumulado por cada hablante.
+    Si no se detectan claves, devuelve el ID del primer hablante que aparece.
     """
     acum = {}
     for s in segmentos:
@@ -30,8 +18,8 @@ def identificar_psicologa(segmentos: list) -> str:
         if any(k in txt for k in CLAVES_PSICO):
             return spk
 
-    # Si no se encuentra, retorna el primer speaker
-    return segmentos[0]["speaker_raw"]
+    # Si no se encuentra ninguna coincidencia clara, asumimos que el primer hablante es el profesional.
+    return segmentos[0]["speaker_raw"] if segmentos else "Desconocido"
 
 # ================= FUSIONAR SEGMENTOS =================
 def fusionar(segmentos: list) -> list:
