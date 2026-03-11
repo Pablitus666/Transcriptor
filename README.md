@@ -25,12 +25,15 @@ El sistema está diseñado para entornos donde se requiere **precisión, trazabi
 
 ## 🎯 Características principales
 
-* Interfaz gráfica profesional basada en **Tkinter**
+* Interfaz gráfica basada en **Tkinter**
 * Transcripción automática mediante **Whisper (small, medium, large-v3)**
 * Procesamiento en **segundo plano (multiprocessing)**
 * Barra de progreso en tiempo real
 * Registro detallado del proceso (log interno)
 * Soporte para **plantillas DOCX personalizadas**
+* **Motor de Búsqueda Quirúrgica "RunMatcher"**: Tecnología de nivel Élite que manipula el XML interno de Word para aplicar formatos sin romper estilos, imágenes o fuentes (Arial 11).
+* **Inteligencia Lingüística Avanzada**: Identificación y resaltado automático (Negrita + Subrayado) de hablantes (**Psicólogo/a**, **Víctima**), ignorando tildes, mayúsculas, género y manejando límites de palabra complejos.
+* **Soporte Multi-idioma (i18n)**: Interfaz global con detección automática del idioma del sistema operativo. Soporta **9 idiomas** (Español, Inglés, Alemán, Francés, Italiano, Japonés, Portugués, Ruso y Chino) con sistema de fallback inteligente.
 * Diseño visual institucional (colores, iconografía, efectos HiDPI)
 * Bloqueo inteligente de controles durante la ejecución
 * Ventanas de diálogo personalizadas (StyledDialog)
@@ -45,6 +48,7 @@ La aplicación cuenta con:
 * Selección de carpeta de audios
 * Selección opcional de plantilla DOCX
 * Selección del modelo Whisper
+* **Selector de Género Profesional**: Permite definir si quien entrevista es "Psicólogo" o "Psicóloga" para una personalización total del documento.
 * Botones de acción con retroalimentación visual
 * Barra de progreso dinámica
 * Consola interna de eventos
@@ -68,18 +72,14 @@ La interfaz está optimizada para pantallas **HiDPI**, con renderizado mejorado 
 ```
 Transcripciones/
 │
-├─ gui/                # Interfaz gráfica
-│   ├─ main_window.py
-│   ├─ about_window.py
-│
-├─ core/               # Lógica de transcripción
-├─ utils/              # Utilidades comunes
-├─ exporters/          # Exportación de resultados
-├─ images/             # Recursos gráficos (logo, iconos, botones)
+├─ gui/                # Interfaz gráfica (ventanas, widgets, diálogos)
+├─ core/               # Lógica de transcripción, orquestación e i18n
+├─ utils/              # Utilidades de texto, tiempo y recursos
+├─ exporters/          # Motor RunMatcher y exportación DOCX
+├─ assets/             # Recursos institucionales (imágenes, fuentes, locales)
 ├─ whisper_env/        # Entorno virtual aislado
 ├─ worker.py           # Proceso de transcripción (multiprocessing)
-├─ ENTREVISTA INFORMATIVA.docx
-└─ iniciar.vbs         # Lanzador sin consola
+└─ main.py             # Punto de entrada de la aplicación
 ```
 
 ---
@@ -89,7 +89,7 @@ Transcripciones/
 El sistema incluye mecanismos para:
 
 * Evitar ejecuciones simultáneas
-* Bloquear botones durante la transcripción
+* Bloquear botones durante la transcripción (bloqueo lógico, no visual)
 * Confirmar cierre si hay procesos activos
 * Validar existencia de archivos críticos
 * Detectar movimientos indebidos de la carpeta base
@@ -103,12 +103,8 @@ El usuario final **no necesita interactuar con la consola**.
 
 La aplicación se inicia mediante:
 
-* Acceso directo creado automáticamente
-* Script VBS que:
-
-  * Activa el entorno virtual
-  * Oculta la consola
-  * Ejecuta la interfaz gráfica
+* Acceso directo creado automáticamente (con icono de alta resolución)
+* Ejecución directa de `main.py` (vía entorno virtual) o binario compilado.
 
 ---
 
@@ -123,8 +119,8 @@ Dependencias principales:
 * `faster-whisper`
 * `torch`
 * `pyannote.audio`
+* `python-docx`
 * `Pillow`
-* `tkinter`
 
 > Todas las dependencias se encuentran contenidas dentro del entorno virtual `whisper_env`.
 
@@ -132,8 +128,7 @@ Dependencias principales:
 
 ## 🧾 Formatos de salida
 
-* **TXT** → Transcripción limpia y directa
-* **DOCX** → Documento formateado usando plantilla institucional
+* **DOCX PROFESIONAL** → Documento de alta fidelidad con hablantes resaltados quirúrgicamente y formato institucional Arial 11. (Se ha optimizado el flujo eliminando el formato TXT para centrarse en la excelencia documental).
 
 ---
 
@@ -141,11 +136,10 @@ Dependencias principales:
 
 Este proyecto fue diseñado con criterios de:
 
-* Usabilidad para personal no técnico
-* Estabilidad operativa
-* Presentación profesional
-* Adaptabilidad a flujos de trabajo oficiales
-* Minimización de errores humanos
+* **Precisión Documental**: Resaltado automático de actores clave en el proceso psicológico/judicial.
+* **Usabilidad**: Para personal no técnico.
+* **Estabilidad operativa**: Gestión robusta de memoria y hilos.
+* **Presentación profesional**: Documentos listos para archivo oficial.
 
 ---
 
@@ -162,13 +156,15 @@ La redistribución, modificación o comercialización requiere autorización exp
 
 ## 👨‍💻 Autor
 
-*   **Nombre:** Pablo Téllez
-*   **Contacto:** pharmakoz@gmail.com
+**Walter Pablo Téllez Ayala**  
+Software Developer
 
-📍 **Tarija, Bolivia — 2026**
+📍 Tarija, Bolivia <img src="https://flagcdn.com/w20/bo.png" width="20"/> <br>
+📧 [pharmakoz@gmail.com](mailto:pharmakoz@gmail.com) 
 
+© 2026 — QR - Generator
 
----
+--- 
 
 ## ⭐ Estado del proyecto
 
