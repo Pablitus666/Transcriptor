@@ -19,33 +19,6 @@ def identificar_psicologa(segmentos: list) -> str:
 
     return segmentos[0]["speaker_raw"] if segmentos else "Desconocido"
 
-# ================= LIMPIEZA DE ALUCINACIONES (NIVEL ÉLITE V31) =================
-def limpiar_alucinaciones(texto: str) -> str:
-    """
-    Elimina o corrige términos que Whisper suele alucinar.
-    """
-    correcciones = {
-        r"\bset\W*up\b": "centro",
-        r"\bset\W*u\b": "centro",
-        r"\bis\s*it\b": "",
-        r"\byou\b": "",
-        r"\bthank\W*you\b": "gracias",
-        r"\bthe\b": "",
-        r"\bokay\b": "ya",
-        r"\bright\b": "bien",
-        r"\bhmm+\b": "",      
-        r"\[ruido\]": "",
-        r"\[silencio\]": "",
-        r"\bya ya\b": "ya",    
-        r"\beh\b": ""          
-    }
-    
-    texto_limpio = texto
-    for patron, reemplazo in correcciones.items():
-        texto_limpio = re.sub(patron, reemplazo, texto_limpio, flags=re.IGNORECASE)
-    
-    return re.sub(r'\s+', ' ', texto_limpio).strip()
-
 # ================= REFINAMIENTO DE TURNOS (NIVEL ÉLITE V40) =================
 def refinar_turnos(segmentos_etiquetados: list, prof_label: str) -> list:
     """

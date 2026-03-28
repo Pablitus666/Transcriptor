@@ -33,7 +33,7 @@ ENTIDADES_PROPIAS = {
 # --- 4. APELLIDOS Y NOMBRES COMUNES (Para evitar alucinaciones) ---
 NOMBRES_REFERENCIA = {
     "Mamani", "Quispe", "Condori", "Choque", "Vargas", "Guzmán", "Pinto", 
-    "Sánchez", "Torres", "Flores", "Rojas", "Zeballos", "Téllez", "Contarín",
+    "Sánchez", "Torres", "Flores", "Rojas", "Zeballos", "Téllez",
     "Villca", "Aruquipa", "Yucra", "Nina", "Copa", "Apaza", "Limachi",
     "Alarcón", "Antezana", "Aparicio", "Arancibia", "Aliaga", "Machicado", 
     "Corrillo", "Cuiza", "Gallardo", "Husler", "Jurado", "Valdez", "Cortez",
@@ -77,16 +77,31 @@ CORRECCIONES_FONETICAS = {
     r"\bes\s+lim\b": "SLIM",
     r"\be\s+slim\b": "SLIM",
     r"\beslim\b": "SLIM",
-    r"\bset\s*-up\b": "centro",
-    r"\bsetup\b": "centro",
+    r"\beslin\b": "SLIM",
+    r"\be\s+slin\b": "SLIM",
+    r"\bslim\s+in\b": "SLIM",
+    r"\bset\s*-?up\b": "centro",
+    r"\bset\s*-?u\b": "centro",
     r"\bgio[vw]ana\b": "Giovana",
     r"\bsalinas\b": "Salinas",
     r"\bberr?uga\b": "Berruga",
     r"¿También es cierto\?": "Tome asiento",
     r"\btome asiento\b": "Tome asiento",
-    r"\bhace\s+salteñas\b": "asentarse", # Corrección invertida para lógica institucional
+    r"\bhace\s+salteñas\b": "asentarse",
     r"\ba\s+césar\s+teñas\b": "asentarse",
-    r"\bcesar\s+teñas\b": "asentarse"
+    r"\bcesar\s+teñas\b": "asentarse",
+    r"\bcontar[íi]n\b": "Condori",
+    r"\bis\s*it\b": "",
+    r"\byou\b": "",
+    r"\bthank\W*you\b": "gracias",
+    r"\bthe\b": "",
+    r"\bokay\b": "ya",
+    r"\bright\b": "bien",
+    r"\bhmm+\b": "",      
+    r"\[ruido\]": "",
+    r"\[silencio\]": "",
+    r"\bya ya\b": "ya",    
+    r"\beh\b": ""
 }
 
 STOP_WORDS_ES = {

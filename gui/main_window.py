@@ -161,7 +161,6 @@ class TranscriptorGUI:
                         self.desbloquear_botones()
                         self.progreso['value'] = 100
                         StyledDialog(self.root, _("dialog.done.title"), str(data), dialog_type="success", image_manager=self.image_manager)
-                        self.root.after(1500, lambda: self.progreso.config(value=0))
                 elif isinstance(message, (int, float)):
                     self.progreso['value'] = message
         except queue.Empty: pass
@@ -275,6 +274,7 @@ class TranscriptorGUI:
         if self.transcribiendo: return
         self.carpeta_var.set("")
         self.plantilla_var.set("")
+        self.progreso['value'] = 0
 
     def bloquear_botones(self):
         self.transcribiendo = True

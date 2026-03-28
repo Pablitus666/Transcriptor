@@ -4,9 +4,9 @@ import torch
 import whisperx
 from typing import Callable, Optional
 
-from core.models import cargar_modelos, cargar_modelo_alineacion
+from core import models
 from core.transcription import transcribir_v30, asignar_texto_v30
-from core.postprocess import identificar_psicologa, fusionar, refinar_turnos, limpiar_alucinaciones, suavizar_hablantes
+from core.postprocess import identificar_psicologa, fusionar, refinar_turnos, suavizar_hablantes
 from exporters.docx_exporter import export_to_docx
 
 class TranscriptorOrchestrator:
@@ -47,6 +47,7 @@ class TranscriptorOrchestrator:
     def process_all(self, folder: str, template: str, model_name: str, hf_token: str, prof_gender: str):
         """
         Ejecuta el pipeline completo para todos los audios en la carpeta.
+        OPTIMIZACIÓN VRAM: Carga por etapas para evitar CUDA Out of Memory.
         """
         all_audios = self.scan_folder(folder)
         if not all_audios:
@@ -59,18 +60,7 @@ class TranscriptorOrchestrator:
             return
 
         self._log(f"🔎 Mapeo finalizado. {len(to_process)} de {len(all_audios)} audios serán procesados.")
-
-        # 1. Cargar modelos
-        self._log("⏳ Cargando motores de inteligencia (V30)...")
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        whisper_model, diar_pipeline = cargar_modelos(model_name, hf_token)
-        
-        # Cargar motor de alineación fonética (Wav2Vec2)
-        self._log("   - Sincronizando alineación fonética (Español)...")
-        align_model, align_metadata = cargar_modelo_alineacion("es", device)
-        
-        self._update_progress(5)
-        self._log("✅ Motores V30 listos para nivel forense\n")
 
         total = len(to_process)
         for idx, filename in enumerate(to_process, start=1):
@@ -79,46 +69,67 @@ class TranscriptorOrchestrator:
             prog_base = (idx - 1) / total * 100
 
             self._log(f"🎙 Procesando {filename} ({idx}/{total})...")
+            self._update_progress(prog_base + 2) # Salto inicial de seguridad
 
             try:
-                # 2. Transcripción y Alineación Quirúrgica (V32 - Sincronía Fina)
+                # ETAPA 1: Transcripción (WhisperX)
                 self._log("   - Transcribiendo audio (Motor WhisperX)...")
                 audio = whisperx.load_audio(audio_path)
-
+                self._update_progress(prog_base + 5) # Progreso al cargar audio
+                
+                # Cargar WhisperX temporalmente
+                whisper_model = models.cargar_whisper(model_name)
+                self._update_progress(prog_base + 10) # Progreso al cargar modelo
+                
+                # Mensaje para que el usuario sepa que el proceso está activo aunque sea lento
+                self._log("   - [GPU] Procesando audio (Este paso puede tardar varios minutos)...")
+                
                 result = whisper_model.transcribe(
                     audio, 
-                    batch_size=16, 
+                    batch_size=4, 
                     language="es"
                 )
+                
+                # Liberar WhisperX inmediatamente
+                del whisper_model
+                models.liberar_gpu()
                 self._update_progress(prog_base + (100 / total) * 0.3)
 
+                # ETAPA 2: Alineación Fonética (Wav2Vec2)
                 self._log("   - Sincronizando palabras (Alineación Fonética)...")
+                align_model, align_metadata = models.cargar_modelo_alineacion("es")
                 result = whisperx.align(result["segments"], align_model, align_metadata, audio, device, return_char_alignments=False)
+                
+                # Liberar Alineación inmediatamente
+                del align_model
+                models.liberar_gpu()
                 self._update_progress(prog_base + (100 / total) * 0.5)
 
+                # ETAPA 3: Diarización (Pyannote)
                 self._log("   - Identificando voces (Diarización de Precisión)...")
+                diar_pipeline = models.cargar_diarizacion(hf_token)
                 diar_segments = diar_pipeline(audio_path, min_speakers=2, max_speakers=2)
+                
+                # Liberar Diarización inmediatamente
+                del diar_pipeline
+                models.liberar_gpu()
                 self._update_progress(prog_base + (100 / total) * 0.7)
 
+                # ETAPA 4: Post-procesamiento
                 self._log("   - Asignando turnos y normalizando texto...")
                 result = whisperx.assign_word_speakers(diar_segments, result)
                 assigned = asignar_texto_v30(result["segments"])
-                self._update_progress(prog_base + (100 / total) * 0.8)
                 
                 # Identificación automática del profesional (Psicólogo/a)
                 prof_id = identificar_psicologa(assigned)
                 
-                # Mapeo final de etiquetas institucionales y Limpieza de Alucinaciones
+                # Mapeo final de etiquetas institucionales
                 labeled = []
                 for s in assigned:
                     speaker_label = prof_gender if s["speaker_raw"] == prof_id else "Víctima"
-                    
-                    # Limpieza quirúrgica de alucinaciones (V31+)
-                    texto_limpio = limpiar_alucinaciones(s["text"])
-                    
                     labeled.append({
                         "speaker": speaker_label,
-                        "text": texto_limpio,
+                        "text": s["text"],
                         "start": s.get("start", 0),
                         "end": s.get("end", 0)
                     })
@@ -131,7 +142,7 @@ class TranscriptorOrchestrator:
                 final_segments = fusionar(refined, max_silencio=1.3)
                 self._update_progress(prog_base + (100 / total) * 0.8)
 
-                # 4. Exportación Profesional DOCX
+                # ETAPA 5: Exportación Profesional DOCX
                 docx_path = os.path.join(self.output_dir, f"{base_name}_transcrito.docx")
                 self._log("   - Generando DOCX institucional (Arial 11)...")
                 export_to_docx(final_segments, docx_path, template)
@@ -141,12 +152,12 @@ class TranscriptorOrchestrator:
 
             except Exception as e:
                 self._log(f"❌ Error procesando {filename}: {str(e)}")
+                # Limpieza final en caso de error para no dejar la GPU bloqueada
+                models.liberar_gpu()
                 continue
 
-            # 5. Limpieza agresiva de memoria para eficiencia industrial
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
+            # Limpieza final del bucle
+            models.liberar_gpu()
 
         if self.queue:
             self.queue(('done', f"✅ ¡Transcripción completada! Se procesaron {total} archivos."))
