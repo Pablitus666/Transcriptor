@@ -1,21 +1,8 @@
 Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
+' Obtener la ruta absoluta de la carpeta donde está este script
 basePath = fso.GetParentFolderName(WScript.ScriptFullName)
-lockFile = basePath & "\.config_path.lock"
-
-' ================= GESTIÓN DE UBICACIÓN INTELIGENTE =================
-' En lugar de bloquear, actualizamos la ruta si ha cambiado
-On Error Resume Next
-Set file = fso.CreateTextFile(lockFile, True)
-if Err.Number = 0 Then
-    file.WriteLine basePath
-    file.Close
-    ' Asegurar que sea oculto
-    Set lock = fso.GetFile(lockFile)
-    lock.Attributes = 2 ' Hidden
-End If
-On Error GoTo 0
 
 ' ================= VALIDAR ENTORNO Y COMPONENTES =================
 If Not fso.FolderExists(basePath & "\whisper_env") Then
@@ -25,17 +12,20 @@ If Not fso.FolderExists(basePath & "\whisper_env") Then
 End If
 
 ' ================= ACCESO DIRECTO (Automatización) =================
-' Si no existe el acceso directo, intentamos crearlo automáticamente
+' Intentar crear/actualizar el acceso directo en segundo plano (asíncrono)
 ps1Path = basePath & "\instalar_acceso_directo.ps1"
-if fso.FileExists(ps1Path) Then
-    ' Ejecutar PowerShell de forma oculta para crear/actualizar el acceso directo
-    shell.Run "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & ps1Path & """", 0, True
+If fso.FileExists(ps1Path) Then
+    ' Ejecutamos PS de forma invisible y SIN esperar (False) para no retrasar el inicio
+    shell.Run "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & ps1Path & """", 0, False
 End If
 
 ' ================= EJECUCIÓN DE LA APLICACIÓN PRINCIPAL =================
-' Ejecutamos el .bat de forma totalmente invisible (0)
+' Ejecutamos el .bat de forma totalmente invisible (0) y asíncrona (False)
 If fso.FileExists(basePath & "\ejecutar.bat") Then
     shell.Run chr(34) & basePath & "\ejecutar.bat" & chr(34), 0, False
 Else
-    MsgBox "No se encontró el lanzador principal (ejecutar.bat).", 16, "Error"
+    MsgBox "No se encontró el lanzador principal (ejecutar.bat) en:" & vbCrLf & basePath, 16, "Error"
 End If
+
+Set shell = Nothing
+Set fso = Nothing
