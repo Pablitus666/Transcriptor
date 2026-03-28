@@ -5,7 +5,7 @@ import whisperx
 from typing import Callable, Optional
 
 from core import models
-from core.transcription import transcribir_v30, asignar_texto_v30
+from core.transcription import asignar_texto_v1
 from core.postprocess import identificar_psicologa, fusionar, refinar_turnos, suavizar_hablantes
 from exporters.docx_exporter import export_to_docx
 
@@ -13,6 +13,7 @@ class TranscriptorOrchestrator:
     """
     Motor central de la aplicación. Orquesta la transcripción, 
     diarización y exportación de múltiples audios.
+    V1.0: Optimización por lotes y eficiencia de RAM.
     """
     def __init__(self, queue_callback: Optional[Callable] = None):
         self.queue = queue_callback
@@ -46,8 +47,9 @@ class TranscriptorOrchestrator:
 
     def process_all(self, folder: str, template: str, model_name: str, hf_token: str, prof_gender: str):
         """
-        Ejecuta el pipeline completo para todos los audios en la carpeta.
-        OPTIMIZACIÓN VRAM: Carga por etapas para evitar CUDA Out of Memory.
+        V1.0: Pipeline por Lotes (Batch Model Processing).
+        Optimiza la velocidad cargando cada modelo una sola vez para todos los audios.
+        Maneja la carga de audio bajo demanda para ahorrar RAM.
         """
         all_audios = self.scan_folder(folder)
         if not all_audios:
@@ -59,71 +61,81 @@ class TranscriptorOrchestrator:
             if self.queue: self.queue(('done', "✅ ¡Todos los audios ya han sido transcritos!"))
             return
 
-        self._log(f"🔎 Mapeo finalizado. {len(to_process)} de {len(all_audios)} audios serán procesados.")
+        total_files = len(to_process)
+        self._log(f"🚀 Iniciando Pipeline V1.0 para {total_files} archivos.")
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        total = len(to_process)
-        for idx, filename in enumerate(to_process, start=1):
-            audio_path = os.path.join(folder, filename)
-            base_name = os.path.splitext(filename)[0]
-            prog_base = (idx - 1) / total * 100
+        # Diccionario para almacenar resultados intermedios de cada archivo
+        results_map = {f: {"path": os.path.join(folder, f)} for f in to_process}
 
-            self._log(f"🎙 Procesando {filename} ({idx}/{total})...")
-            self._update_progress(prog_base + 2) # Salto inicial de seguridad
+        try:
+            # --- ETAPA 1: TRANSCRIPCIÓN (WhisperX) ---
+            self._log(f"🧠 Cargando Motor de Transcripción ({model_name})...")
+            whisper_model = models.cargar_whisper(model_name)
+            
+            for i, filename in enumerate(to_process, start=1):
+                self._log(f"🎙 [{i}/{total_files}] Transcribiendo: {filename}")
+                self._update_progress((i / total_files) * 30)
+                audio = whisperx.load_audio(results_map[filename]["path"])
+                # V1.0: Reducimos batch_size a 4 para estabilidad total en GPUs de consumo
+                results_map[filename]["transcription"] = whisper_model.transcribe(audio, batch_size=4, language="es")
+                del audio # Liberar RAM inmediatamente
+                models.liberar_gpu() # Limpieza preventiva tras cada archivo
+            
+            del whisper_model
+            models.liberar_gpu()
+            self._log("✅ Transcripción base finalizada. Liberando GPU...")
 
-            try:
-                # ETAPA 1: Transcripción (WhisperX)
-                self._log("   - Transcribiendo audio (Motor WhisperX)...")
-                audio = whisperx.load_audio(audio_path)
-                self._update_progress(prog_base + 5) # Progreso al cargar audio
+            # --- ETAPA 2: ALINEACIÓN FONÉTICA (Wav2Vec2) ---
+            self._log("🧠 Cargando Motor de Alineación Fonética...")
+            align_model, align_metadata = models.cargar_modelo_alineacion("es")
+            
+            for i, filename in enumerate(to_process, start=1):
+                self._log(f"📏 [{i}/{total_files}] Sincronizando palabras: {filename}")
+                self._update_progress(30 + (i / total_files) * 20)
                 
-                # Cargar WhisperX temporalmente
-                whisper_model = models.cargar_whisper(model_name)
-                self._update_progress(prog_base + 10) # Progreso al cargar modelo
-                
-                # Mensaje para que el usuario sepa que el proceso está activo aunque sea lento
-                self._log("   - [GPU] Procesando audio (Este paso puede tardar varios minutos)...")
-                
-                result = whisper_model.transcribe(
-                    audio, 
-                    batch_size=4, 
-                    language="es"
-                )
-                
-                # Liberar WhisperX inmediatamente
-                del whisper_model
-                models.liberar_gpu()
-                self._update_progress(prog_base + (100 / total) * 0.3)
+                audio = whisperx.load_audio(results_map[filename]["path"])
+                segments = results_map[filename]["transcription"]["segments"]
+                aligned = whisperx.align(segments, align_model, align_metadata, audio, device, return_char_alignments=False)
+                results_map[filename]["aligned"] = aligned
+                del audio # Liberar RAM
+            
+            del align_model
+            models.liberar_gpu()
+            self._log("✅ Alineación finalizada. Liberando GPU...")
 
-                # ETAPA 2: Alineación Fonética (Wav2Vec2)
-                self._log("   - Sincronizando palabras (Alineación Fonética)...")
-                align_model, align_metadata = models.cargar_modelo_alineacion("es")
-                result = whisperx.align(result["segments"], align_model, align_metadata, audio, device, return_char_alignments=False)
+            # --- ETAPA 3: DIARIZACIÓN (Pyannote) ---
+            self._log("🧠 Cargando Motor de Diarización...")
+            diar_pipeline = models.cargar_diarizacion(hf_token)
+            
+            for i, filename in enumerate(to_process, start=1):
+                self._log(f"👥 [{i}/{total_files}] Identificando voces: {filename}")
+                self._update_progress(50 + (i / total_files) * 25)
                 
-                # Liberar Alineación inmediatamente
-                del align_model
-                models.liberar_gpu()
-                self._update_progress(prog_base + (100 / total) * 0.5)
+                audio_path = results_map[filename]["path"]
+                results_map[filename]["diarization"] = diar_pipeline(audio_path, min_speakers=2, max_speakers=2)
+            
+            del diar_pipeline
+            models.liberar_gpu()
+            self._log("✅ Diarización finalizada. Liberando GPU...")
 
-                # ETAPA 3: Diarización (Pyannote)
-                self._log("   - Identificando voces (Diarización de Precisión)...")
-                diar_pipeline = models.cargar_diarizacion(hf_token)
-                diar_segments = diar_pipeline(audio_path, min_speakers=2, max_speakers=2)
+            # --- ETAPA 4: ASIGNACIÓN Y EXPORTACIÓN ---
+            self._log("🖋 Generando documentos finales...")
+            for i, filename in enumerate(to_process, start=1):
+                self._log(f"📄 Exportando: {filename}")
+                self._update_progress(75 + (i / total_files) * 25)
                 
-                # Liberar Diarización inmediatamente
-                del diar_pipeline
-                models.liberar_gpu()
-                self._update_progress(prog_base + (100 / total) * 0.7)
-
-                # ETAPA 4: Post-procesamiento
-                self._log("   - Asignando turnos y normalizando texto...")
-                result = whisperx.assign_word_speakers(diar_segments, result)
-                assigned = asignar_texto_v30(result["segments"])
+                base_name = os.path.splitext(filename)[0]
+                res = results_map[filename]
                 
-                # Identificación automática del profesional (Psicólogo/a)
+                # Asignación word-level
+                result_assigned = whisperx.assign_word_speakers(res["diarization"], res["aligned"])
+                assigned = asignar_texto_v1(result_assigned["segments"])
+                
+                # Identificación Profesional (Inteligente V1.0)
                 prof_id = identificar_psicologa(assigned)
                 
-                # Mapeo final de etiquetas institucionales
+                # Mapeo y Refinamiento
                 labeled = []
                 for s in assigned:
                     speaker_label = prof_gender if s["speaker_raw"] == prof_id else "Víctima"
@@ -134,30 +146,20 @@ class TranscriptorOrchestrator:
                         "end": s.get("end", 0)
                     })
 
-                # Refinamiento Élite: Suavizar parpadeos y detectar preguntas fusionadas
+                # Pipeline de post-procesado consolidado
                 smoothed = suavizar_hablantes(labeled, umbral_breve=1.0)
                 refined = refinar_turnos(smoothed, prof_gender)
+                final_segments = fusionar(refined)
 
-                # Fusión final de segmentos con límite de silencio de equilibrio (V34: 1.3s)
-                final_segments = fusionar(refined, max_silencio=1.3)
-                self._update_progress(prog_base + (100 / total) * 0.8)
-
-                # ETAPA 5: Exportación Profesional DOCX
+                # Exportación
                 docx_path = os.path.join(self.output_dir, f"{base_name}_transcrito.docx")
-                self._log("   - Generando DOCX institucional (Arial 11)...")
                 export_to_docx(final_segments, docx_path, template)
                 
-                self._update_progress(prog_base + (100 / total))
-                self._log(f"✅ DOCX V32 generado con éxito: {filename}\n")
+            self._log(f"🎊 ¡Pipeline Élite V1.0 finalizado con éxito! ({total_files} archivos)")
 
-            except Exception as e:
-                self._log(f"❌ Error procesando {filename}: {str(e)}")
-                # Limpieza final en caso de error para no dejar la GPU bloqueada
-                models.liberar_gpu()
-                continue
-
-            # Limpieza final del bucle
+        except Exception as e:
+            self._log(f"❌ Error crítico en el Pipeline: {str(e)}")
             models.liberar_gpu()
 
         if self.queue:
-            self.queue(('done', f"✅ ¡Transcripción completada! Se procesaron {total} archivos."))
+            self.queue(('done', f"✅ Transcripción completada exitosamente."))

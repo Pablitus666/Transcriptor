@@ -68,8 +68,8 @@ except Exception:
 # Unimos todo para el Lexico Global
 LEXICO_GLOBAL = SIGLAS_INSTITUCIONALES.union(ENTIDADES_PROPIAS).union(NOMBRES_REFERENCIA).union(TITULOS_CARGOS)
 
-# --- 6. MAPEO DE CORRECCIONES QUIRÚRGICAS ---
-CORRECCIONES_FONETICAS = {
+# --- 6. MAPEO DE CORRECCIONES QUIRÚRGICAS (Pre-compiladas V1.0) ---
+CORRECCIONES_FONETICAS_RAW = {
     r"\bfel\s+se\s+ve\b": "FELCV",
     r"\bfel\s+ce\s+ve\b": "FELCV",
     r"\bfel\s+se\s+ce\b": "FELCC",
@@ -85,11 +85,14 @@ CORRECCIONES_FONETICAS = {
     r"\bgio[vw]ana\b": "Giovana",
     r"\bsalinas\b": "Salinas",
     r"\bberr?uga\b": "Berruga",
+    r"\bnatviki\b": "snack Viki",
+    r"\bparriada\b": "parrillada",
     r"¿También es cierto\?": "Tome asiento",
     r"\btome asiento\b": "Tome asiento",
-    r"\bhace\s+salteñas\b": "asentarse",
-    r"\ba\s+césar\s+teñas\b": "asentarse",
-    r"\bcesar\s+teñas\b": "asentarse",
+    r"\bhaz\s+de\s+salteñas\b": "hacer salteñas",
+    r"\bhace\s+salteñas\b": "hacer salteñas",
+    r"\ba\s+césar\s+teñas\b": "hacer salteñas",
+    r"\bcesar\s+teñas\b": "hacer salteñas",
     r"\bcontar[íi]n\b": "Condori",
     r"\bis\s*it\b": "",
     r"\byou\b": "",
@@ -103,6 +106,11 @@ CORRECCIONES_FONETICAS = {
     r"\bya ya\b": "ya",    
     r"\beh\b": ""
 }
+
+# Compilación única para máxima velocidad
+CORRECCIONES_COMPILADAS = [
+    (re.compile(p, re.IGNORECASE), r) for p, r in CORRECCIONES_FONETICAS_RAW.items()
+]
 
 STOP_WORDS_ES = {
     "el", "la", "los", "las", "un", "una", "unos", "unas", "yo", "tú", "él", "ella", 
@@ -161,19 +169,32 @@ def capitalizacion_inteligente(texto: str) -> str:
     return " ".join(resultado)
 
 def corregir_texto(t: str) -> str:
-    for error, correccion in CORRECCIONES_FONETICAS.items():
-        t = re.sub(error, correccion, t, flags=re.IGNORECASE)
+    """Aplica correcciones fonéticas usando patrones pre-compilados."""
+    for pattern, replacement in CORRECCIONES_COMPILADAS:
+        t = pattern.sub(replacement, t)
     return t
 
 def normalizar_texto(t: str) -> str:
+    """
+    V1.0: Normalización Forense (Reversión a la perfección).
+    ELIMINA TODOS LOS PUNTOS (.) para un flujo de texto continuo.
+    """
     if not t: return ""
-    # Quitamos puntos finales que a veces Whisper pone en medio de frases
+    
+    # 1. Quitamos TODOS los puntos (Whisper a veces los pone en lugares erróneos)
     t = t.replace(".", "")
+    
+    # 2. Correcciones fonéticas y léxicas
     t = corregir_texto(t)
-    t = capitalizacion_inteligente(t)
+    
+    # 3. Limpieza de ruidos y espacios
     t = re.sub(r"\s+", " ", t).strip()
     
+    # 4. Capitalización inteligente (Tarija/Cargos/Siglas)
+    t = capitalizacion_inteligente(t)
+    
     if t:
-        # Forzamos mayúscula inicial del párrafo
+        # Aseguramos que empiece con mayúscula el bloque
         t = t[0].upper() + t[1:]
+        
     return t

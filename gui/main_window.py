@@ -32,11 +32,13 @@ class TranscriptorGUI:
         self.image_manager = ImageManager(self.root)
         self.config = persistence.load_config()
 
-        # Las rutas de trabajo NO se guardan para evitar clics extras al cambiar de caso
+        # PERSISTENCIA V1.0: Solo se recuerda la plantilla DOCX. 
+        # Carpeta y género profesional siempre por defecto al iniciar.
         self.carpeta_var = tk.StringVar(value="")
-        self.plantilla_var = tk.StringVar(value="")
+        self.plantilla_var = tk.StringVar(value=self.config.get("last_template", ""))
+        self.genero_profesional_var = tk.StringVar(value=_("role.psychologist_f"))
         
-        # Solo persistimos el modelo y el token de Hugging Face
+        # Persistimos también el modelo y el token de Hugging Face
         self.modelo_var = tk.StringVar(value=self.config.get("model", "large-v3"))
         self.hf_token_var = tk.StringVar(value=self.config.get("hf_token", ""))
         self.transcribiendo = False
@@ -84,34 +86,29 @@ class TranscriptorGUI:
 
     def guardar_config_actual(self):
         """Sincroniza el estado de la UI con el archivo config.json."""
-        self.config["last_folder"] = self.carpeta_var.get()
+        # Nota: Guardamos estos valores pero el __init__ solo carga los que queremos recordar.
         self.config["last_template"] = self.plantilla_var.get()
         self.config["model"] = self.modelo_var.get()
         self.config["hf_token"] = self.hf_token_var.get()
-        self.config["prof_gender"] = self.genero_profesional_var.get()
         persistence.save_config(self.config)
 
     def mostrar_config_token(self):
         """Diálogo profesional para configurar el token de Hugging Face sin parpadeos."""
         if self.transcribiendo: return
         
-        # Crear y ocultar inmediatamente para evitar parpadeo
         dialog_win = tk.Toplevel(self.root)
         dialog_win.withdraw() 
-        
         dialog_win.title("Configuración")
         dialog_win.configure(bg=BG_COLOR)
         dialog_win.resizable(False, False)
         dialog_win.transient(self.root)
         dialog_win.grab_set()
 
-        # ASIGNAR ICONO INSTITUCIONAL
         try:
             dialog_win.iconbitmap(self.icon_path)
         except:
             pass
 
-        # Centrar respecto a la principal (Cálculo antes de mostrar)
         ww, wh = 450, 200
         px = self.root.winfo_x() + (self.root.winfo_width() // 2) - (ww // 2)
         py = self.root.winfo_y() + (self.root.winfo_height() // 2) - (wh // 2)
@@ -130,7 +127,6 @@ class TranscriptorGUI:
         btn_frame.pack(pady=15)
         create_image_button(btn_frame, "Guardar", save_and_close, self.image_manager, self.boton_path, (110, 38), font=(FONT_FAMILY, 10, "bold")).pack()
 
-        # Mostrar solo cuando todo está listo y en su posición final
         dialog_win.deiconify()
 
     def centrar_ventana(self, width, height):
@@ -167,7 +163,6 @@ class TranscriptorGUI:
         self.root.after(200, self.check_queue)
 
     def crear_widgets(self):
-        # Header: Dimensiones optimizadas para calidad y proporción exacta
         title_photo = self.image_manager.load(self.title_path, size=(400, 65), add_relief_effect=True, add_shadow_effect=True)
         logo_photo = self.image_manager.load(self.logo_path, size=(115, 115), add_relief_effect=False, add_shadow_effect=False)
 
@@ -192,20 +187,17 @@ class TranscriptorGUI:
             title_label.image = title_photo
             title_label.grid(row=0, column=2)
             
-        # Botón de Configuración (Elegante y pequeño en la esquina superior derecha del header)
         btn_config = create_image_button(frm_header, "⚙", self.mostrar_config_token, self.image_manager, self.boton_path, (45, 45), font=(FONT_FAMILY, 14, "bold"))
         btn_config.grid(row=0, column=3, sticky="e", padx=(10, 0))
 
         separator = tk.Frame(self.root, bg="#cccccc", height=1)
         separator.pack(fill='x', padx=40, pady=2)
 
-        # Estilos TTK
         style = ttk.Style()
         style.theme_use('clam')
         style.configure('Solarized.TCombobox', fieldbackground='#f0f0f0', background='#f0f0f0', foreground='black', arrowcolor='black', bordercolor='#f0f0f0')
         style.configure('Custom.Horizontal.TProgressbar', troughcolor='#f0f0f0', background='green', bordercolor='#f0f0f0')
 
-        # Formulario
         frm_top = tk.Frame(self.root, bg=BG_COLOR)
         frm_top.pack(fill=tk.X, pady=(0, 10), padx=20)
         frm_izq = tk.Frame(frm_top, bg=BG_COLOR)
@@ -233,19 +225,8 @@ class TranscriptorGUI:
         self.modelo_combo.pack(side=tk.LEFT, padx=(0, 20))
 
         tk.Label(frm_modelo_genero, text=_("label.professional"), bg=BG_COLOR, fg=TEXT_COLOR, font=(FONT_FAMILY, 11, "bold")).pack(side=tk.LEFT, padx=(0, 10))
-        self.genero_profesional_var = tk.StringVar(value=_("role.psychologist_f"))
-        style.configure('Wild.TRadiobutton', 
-                        background=BG_COLOR, 
-                        foreground=TEXT_COLOR, 
-                        font=(FONT_FAMILY, 10), 
-                        focuscolor=BG_COLOR, 
-                        focusthickness=0,
-                        borderwidth=0,
-                        relief="flat")
-        # Eliminar cualquier borde o color de enfoque en el mapa de estados
-        style.map('Wild.TRadiobutton',
-                  background=[('active', BG_COLOR), ('pressed', BG_COLOR)],
-                  focuscolor=[('active', BG_COLOR)])
+        style.configure('Wild.TRadiobutton', background=BG_COLOR, foreground=TEXT_COLOR, font=(FONT_FAMILY, 10), focuscolor=BG_COLOR, focusthickness=0, borderwidth=0, relief="flat")
+        style.map('Wild.TRadiobutton', background=[('active', BG_COLOR), ('pressed', BG_COLOR)], focuscolor=[('active', BG_COLOR)])
         
         self.rb_mujer = ttk.Radiobutton(frm_modelo_genero, text=_("role.psychologist_f"), variable=self.genero_profesional_var, value=_("role.psychologist_f"), style='Wild.TRadiobutton', cursor="hand2", takefocus=False)
         self.rb_mujer.pack(side=tk.LEFT, padx=(0, 10))
@@ -273,7 +254,6 @@ class TranscriptorGUI:
     def limpiar_campos(self, event=None):
         if self.transcribiendo: return
         self.carpeta_var.set("")
-        self.plantilla_var.set("")
         self.progreso['value'] = 0
 
     def bloquear_botones(self):
@@ -292,11 +272,9 @@ class TranscriptorGUI:
         self.btn_carpeta.config(command=self.seleccionar_carpeta, cursor="hand2")
         self.btn_plantilla.config(command=self.seleccionar_plantilla, cursor="hand2")
         self.btn_limpiar.config(command=self.limpiar_campos, cursor="hand2")
-        
         for btn in [self.btn_transcribir, self.btn_carpeta, self.btn_plantilla, self.btn_limpiar]:
             btn.bind("<Enter>", lambda e, b=btn: b.config(fg=ACCENT_COLOR))
             btn.bind("<Leave>", lambda e, b=btn: b.config(fg=TEXT_COLOR))
-
         self.rb_mujer.unbind("<Button-1>")
         self.rb_hombre.unbind("<Button-1>")
         self.entry_carpeta.config(state="readonly")
@@ -311,7 +289,9 @@ class TranscriptorGUI:
     def seleccionar_plantilla(self):
         if self.transcribiendo: return
         archivo = filedialog.askopenfilename(filetypes=[("Documentos Word", "*.docx")], parent=self.root)
-        if archivo: self.plantilla_var.set(archivo)
+        if archivo: 
+            self.plantilla_var.set(archivo)
+            self.guardar_config_actual()
 
     def iniciar_transcripcion(self):
         if self.transcribiendo: return
@@ -319,18 +299,16 @@ class TranscriptorGUI:
         plantilla = self.plantilla_var.get()
         modelo = self.modelo_var.get()
         genero_profesional = self.genero_profesional_var.get()
-
         if not all([carpeta, os.path.isdir(carpeta)]):
             StyledDialog(self.root, _("dialog.error.title"), _("error.invalid_folder"), dialog_type="error", image_manager=self.image_manager)
             return
-        
         self.bloquear_botones()
+        self.guardar_config_actual()
         self.progreso['value'] = 0
         self._log_message(_("log.starting"))
         from worker import run_transcription_process
         self.proceso_hijo = multiprocessing.Process(target=run_transcription_process, args=(self.progress_queue, carpeta, plantilla, modelo, genero_profesional), daemon=True)
         self.proceso_hijo.start()
-
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()

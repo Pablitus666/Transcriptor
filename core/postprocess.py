@@ -3,26 +3,36 @@ import re
 from config.settings import CLAVES_PSICO
 from utils.text import normalizar_texto
 
-# ================= IDENTIFICAR PSICÓLOGA =================
-def identificar_psicologa(segmentos: list) -> str:
+# ================= IDENTIFICAR PSICÓLOGA (Inteligente V1.0) =================
+def identificar_psicologa(segmentos: list, ventana_inicio: float = 300.0) -> str:
     """
-    Busca al profesional (Psicólogo/a) analizando palabras clave.
+    V1.0: Busca al profesional analizando palabras clave SOLO en la ventana inicial.
+    Esto evita falsos positivos en el resto del testimonio.
     """
     acum = {}
     for s in segmentos:
-        acum.setdefault(s["speaker_raw"], "")
-        acum[s["speaker_raw"]] += " " + s["text"].lower().strip()
+        # Solo analizamos segmentos que ocurren en los primeros X segundos (def: 5 min)
+        if s.get("start", 0) > ventana_inicio:
+            continue
+            
+        spk = s["speaker_raw"]
+        acum.setdefault(spk, "")
+        acum[spk] += " " + s["text"].lower().strip()
 
     for spk, txt in acum.items():
         if any(k in txt for k in CLAVES_PSICO):
             return spk
 
+    # Fallback: Si no detecta nada en la ventana, toma el orador con más texto en esa ventana
+    if acum:
+        return max(acum, key=lambda k: len(acum[k]))
+
     return segmentos[0]["speaker_raw"] if segmentos else "Desconocido"
 
-# ================= REFINAMIENTO DE TURNOS (NIVEL ÉLITE V40) =================
+# ================= REFINAMIENTO DE TURNOS (NIVEL ÉLITE V1.0) =================
 def refinar_turnos(segmentos_etiquetados: list, prof_label: str) -> list:
     """
-    V40: Lógica Gramatical Refinada.
+    V1.0: Lógica Gramatical Refinada.
     """
     refinado = []
     victima_label = "Víctima"
@@ -64,7 +74,7 @@ def refinar_turnos(segmentos_etiquetados: list, prof_label: str) -> list:
                     
     return refinado
 
-# ================= SUAVIZAR HABLANTES (Sincronía V36) =================
+# ================= SUAVIZAR HABLANTES (Sincronía V1.0) =================
 def suavizar_hablantes(segmentos: list, umbral_breve: float = 0.5) -> list:
     """
     Filtro anti-parpadeo de oradores.
@@ -87,29 +97,34 @@ def suavizar_hablantes(segmentos: list, umbral_breve: float = 0.5) -> list:
         i += 1
     return resultado
 
-# ================= FUSIONAR SEGMENTOS (Sincronía V40) =================
-def fusionar(segmentos: list, max_silencio: float = 1.5) -> list:
+# ================= FUSIONAR SEGMENTOS (Atómica V1.0) =================
+def fusionar(segmentos: list) -> list:
     """
-    V40: Fusión ATÓMICA.
-    NUNCA permite dos párrafos seguidos del mismo orador.
-    Unifica bloques del mismo orador sin importar el silencio para evitar duplicidad de etiquetas.
+    V1.0: Fusión ATÓMICA TOTAL.
+    Unifica bloques del mismo orador sin importar el tiempo de silencio entre ellos.
+    Esto garantiza que el testimonio se lea como un párrafo continuo.
     """
     if not segmentos: return []
     
     salida = []
     actual = segmentos[0].copy()
     
+    # Limpiamos posibles saltos de línea en el texto inicial
+    actual["text"] = actual["text"].replace("\n", " ").strip()
+    
     for s in segmentos[1:]:
-        # REGLA DE ORO V40: Si es el mismo orador, se pega SÍ O SÍ.
+        # REGLA DE ORO V1.0: Si es el mismo orador, se pega SIEMPRE.
         if s["speaker"] == actual["speaker"]:
-            # Agregamos el texto al bloque actual
-            actual["text"] += " " + s["text"]
+            # Agregamos el texto al bloque actual (limpiando saltos de línea)
+            nuevo_texto = s["text"].replace("\n", " ").strip()
+            actual["text"] += " " + nuevo_texto
             # Actualizamos el tiempo final
             if s.get("end"): actual["end"] = s["end"]
         else:
             # Cambio de orador: Guardamos el bloque actual y empezamos uno nuevo
             salida.append(actual)
             actual = s.copy()
+            actual["text"] = actual["text"].replace("\n", " ").strip()
             
     # Guardamos el último bloque procesado
     salida.append(actual)

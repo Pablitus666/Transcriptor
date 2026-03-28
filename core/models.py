@@ -36,9 +36,14 @@ def cargar_whisper(modelo_name: str):
     )
 
 def cargar_diarizacion(hf_token: str):
-    """Carga solo el pipeline de diarización."""
+    """
+    Carga solo el pipeline de diarización.
+    Optimizado para funcionamiento 100% Offline (V1.0).
+    """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     from whisperx.diarize import DiarizationPipeline
+    
+    # Intentamos cargar con el token, pero priorizando el caché local
     return DiarizationPipeline(
         model_name="pyannote/speaker-diarization-3.1",
         token=hf_token,

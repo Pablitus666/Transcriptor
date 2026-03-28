@@ -169,6 +169,7 @@ def export_to_docx(segments, output_path, template_path=None):
                             run.font.name = 'Arial'
                             run.font.size = Pt(11)
                         
+                        # V1.0: Restauramos el espacio SOLO entre oradores para legibilidad
                         if i < len(segments) - 1:
                             empty_p = p.insert_paragraph_before("", style)
                             run = empty_p.add_run(' ')
