@@ -30,9 +30,10 @@ class StyledDialog:
         self.dialog.configure(bg=self.BG_COLOR)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        
+        # Bloqueo total de redimensionamiento
         self.dialog.resizable(False, False)
 
-        # Usar el nuevo sistema de recursos modular
         self.icon_path = resources.image_path("icon.ico")
         if os.path.isfile(self.icon_path):
             try:
@@ -41,35 +42,38 @@ class StyledDialog:
                 pass
 
         self.crear_widgets(title, message, self.ICONS.get(self.dialog_type, "ℹ️"))
-        self._center_popup(400, 200)
+        
+        # Ajuste inteligente y centrado
+        self._center_popup(420)
         self.dialog.deiconify()
 
     def crear_widgets(self, title, message, emoji):
-        frm_main = tk.Frame(self.dialog, bg=self.BG_COLOR, padx=20, pady=20)
+        # Márgenes más compactos y profesionales
+        frm_main = tk.Frame(self.dialog, bg=self.BG_COLOR, padx=25, pady=20)
         frm_main.pack(fill=tk.BOTH, expand=True)
         
-        lbl_emoji = tk.Label(frm_main, text=emoji, font=(self.FONT_FAMILY, 28, "bold"), bg=self.BG_COLOR, fg=self.ACCENT_COLOR)
-        lbl_emoji.grid(row=0, column=0, rowspan=2, padx=(0, 15), sticky="ns")
+        lbl_emoji = tk.Label(frm_main, text=emoji, font=(self.FONT_FAMILY, 28), bg=self.BG_COLOR, fg=self.ACCENT_COLOR)
+        lbl_emoji.pack(pady=(0, 8))
         
-        lbl_title = tk.Label(frm_main, text=title, font=(self.FONT_FAMILY, 14, "bold"), bg=self.BG_COLOR, fg=self.ACCENT_COLOR, justify="left")
-        lbl_title.grid(row=0, column=1, sticky="nw")
+        lbl_title = tk.Label(frm_main, text=title, font=(self.FONT_FAMILY, 13, "bold"), bg=self.BG_COLOR, fg=self.ACCENT_COLOR, justify="center")
+        lbl_title.pack(pady=(0, 10))
 
-        lbl_msg = tk.Label(frm_main, text=message, font=(self.FONT_FAMILY, 11, "bold"), bg=self.BG_COLOR, fg=self.TEXT_COLOR, wraplength=280, justify="left")
-        lbl_msg.grid(row=1, column=1, sticky="nw", pady=(5, 0))
+        lbl_msg = tk.Label(frm_main, text=message, font=(self.FONT_FAMILY, 10, "bold"), bg=self.BG_COLOR, fg=self.TEXT_COLOR, wraplength=360, justify="center")
+        lbl_msg.pack(fill=tk.X, expand=True, pady=(0, 15))
 
         btn_frame = tk.Frame(self.dialog, bg=self.BG_COLOR)
-        btn_frame.pack(pady=(0, 20))
+        btn_frame.pack(side=tk.BOTTOM, pady=(0, 20))
 
         boton_path = resources.image_path("boton.png")
 
         if self.dialog_type in ["info", "error", "success", "warning"]:
-            btn_aceptar = create_image_button(btn_frame, _("button.accept"), self.handle_no, self.image_manager, boton_path, (110, 40), font=(self.FONT_FAMILY, 10, "bold"))
+            btn_aceptar = create_image_button(btn_frame, _("button.accept"), self.handle_no, self.image_manager, boton_path, (120, 38), font=(self.FONT_FAMILY, 9, "bold"))
             btn_aceptar.pack()
         elif self.dialog_type == "question":
-            btn_si = create_image_button(btn_frame, _("button.yes"), self.handle_yes, self.image_manager, boton_path, (100, 40), font=(self.FONT_FAMILY, 10, "bold"))
-            btn_si.pack(side=tk.LEFT, padx=10)
-            btn_no = create_image_button(btn_frame, _("button.no"), self.handle_no, self.image_manager, boton_path, (100, 40), font=(self.FONT_FAMILY, 10, "bold"))
-            btn_no.pack(side=tk.RIGHT, padx=10)
+            btn_si = create_image_button(btn_frame, _("button.yes"), self.handle_yes, self.image_manager, boton_path, (100, 38), font=(self.FONT_FAMILY, 9, "bold"))
+            btn_si.pack(side=tk.LEFT, padx=8)
+            btn_no = create_image_button(btn_frame, _("button.no"), self.handle_no, self.image_manager, boton_path, (100, 38), font=(self.FONT_FAMILY, 9, "bold"))
+            btn_no.pack(side=tk.RIGHT, padx=8)
 
     def handle_yes(self):
         self.result = True
@@ -83,8 +87,17 @@ class StyledDialog:
         self.parent.wait_window(self.dialog)
         return self.result
 
-    def _center_popup(self, width, height):
+    def _center_popup(self, width):
         self.dialog.update_idletasks()
+        # Obtener la altura real que Tkinter ha calculado para el contenido
+        height = self.dialog.winfo_reqheight()
+        
         x = (self.dialog.winfo_screenwidth() // 2) - (width // 2)
         y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
+        
+        # Limitar altura máxima para que no se salga de la pantalla en errores críticos
+        screen_h = self.dialog.winfo_screenheight()
+        if height > screen_h * 0.8:
+            height = int(screen_h * 0.8)
+            
         self.dialog.geometry(f"{width}x{height}+{x}+{y}")

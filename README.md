@@ -1,21 +1,21 @@
-# 📝 Transcriptor
+# 📝 Transcriptor V1.0
 
-**Sistema de transcripción automática de audios con interfaz gráfica profesional**
+**Sistema de transcripción automática con inteligencia gramatical y aceleración por GPU**
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Whisper](https://img.shields.io/badge/OpenAI-Whisper-black)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![WhisperX](https://img.shields.io/badge/Motor-WhisperX-black)
+![CUDA](https://img.shields.io/badge/GPU-NVIDIA%20CUDA-76B900)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6)
-![Build](https://img.shields.io/badge/build-stable-brightgreen)
-![License](https://img.shields.io/badge/license-Private%20Institutional-red)
+![Build](https://img.shields.io/badge/build-beta-orange)
 ![Version](https://img.shields.io/badge/version-1.0.0-blueviolet)
 
 ---
 
 ## 📌 Descripción general
 
-**Transcriptor** es una aplicación de escritorio desarrollada en **Python** que permite la **transcripción automática de audios en español**, integrando modelos avanzados de **OpenAI Whisper** y diarización de hablantes, con una **interfaz gráfica moderna, estable y orientada a uso institucional**.
+**Transcriptor V1.0** es una solución desarrollada en **Python** para la **transcripción automatizada**. Integra el motor **WhisperX** con alineación fonética y una **Lógica Gramatical de Turnos**, diseñada para entrevistas en **Cámara Gesell** y entornos institucionales en **Bolivia**.
 
-El sistema está diseñado para entornos donde se requiere **precisión, trazabilidad y facilidad de uso**, como entrevistas informativas, declaraciones, informes psicológicos y documentación administrativa.
+El sistema utiliza la potencia de la **GPU (NVIDIA CUDA)** para procesar audios extensos en segundos, garantizando una estructura documental idéntica a la transcripción manual profesional.
 
 ---
 
@@ -23,134 +23,60 @@ El sistema está diseñado para entornos donde se requiere **precisión, trazabi
 
 ---
 
-## 🎯 Características principales
+## 🎯 Características Principales (Nivel Élite)
 
-* Interfaz gráfica basada en **Tkinter**
-* Transcripción automática mediante **Whisper (small, medium, large-v3)**
-* Procesamiento en **segundo plano (multiprocessing)**
-* Barra de progreso en tiempo real
-* Registro detallado del proceso (log interno)
-* Soporte para **plantillas DOCX personalizadas**
-* **Motor de Búsqueda Quirúrgica "RunMatcher"**: Tecnología de nivel Élite que manipula el XML interno de Word para aplicar formatos sin romper estilos, imágenes o fuentes (Arial 11).
-* **Inteligencia Lingüística Avanzada**: Identificación y resaltado automático (Negrita + Subrayado) de hablantes (**Psicólogo/a**, **Víctima**), ignorando tildes, mayúsculas, género y manejando límites de palabra complejos.
-* **Soporte Multi-idioma (i18n)**: Interfaz global con detección automática del idioma del sistema operativo. Soporta **9 idiomas** (Español, Inglés, Alemán, Francés, Italiano, Japonés, Portugués, Ruso y Chino) con sistema de fallback inteligente.
-* Diseño visual institucional (colores, iconografía, efectos HiDPI)
-* Bloqueo inteligente de controles durante la ejecución
-* Ventanas de diálogo personalizadas (StyledDialog)
-* Sistema portable (no requiere instalación tradicional)
+* **Motor WhisperX V30+**: Integración de alineación fonética para una sincronía de palabras de ±30ms.
+* **Aceleración por GPU**: Optimizado para **NVIDIA CUDA 12.1**, permitiendo el uso del modelo `large-v3` a máxima velocidad.
+* **Lógica Gramatical de Turnos (V40)**: Cerebro artificial que entiende la dinámica "Pregunta-Respuesta", corrigiendo automáticamente errores de diarización cuando la IA de voz confunde a los oradores.
+* **Fusión Atómica**: Algoritmo que garantiza la eliminación total de duplicados de etiquetas (Psicóloga/Víctima), logrando un flujo de lectura limpio y profesional.
+* **Diccionario de Tarija (OSM)**: Base de datos integrada con **1,120 nombres de calles, avenidas y barrios** de Tarija, Bolivia, extraídos de OpenStreetMap para una capitalización perfecta.
+* **Motor RunMatcher**: Manipulación quirúrgica del XML de Word para aplicar negritas y subrayados institucionales (Arial 11) sin dañar el formato original.
+* **Protección de Tablas**: El sistema identifica y protege las tablas de cabecera, manteniendo intactos los datos de Fiscales y Víctimas.
+* **Soporte Multi-idioma (i18n)**: Interfaz global en **9 idiomas** con detección automática del sistema operativo.
 
 ---
 
-## 🖥 Interfaz de usuario
-
-La aplicación cuenta con:
-
-* Selección de carpeta de audios
-* Selección opcional de plantilla DOCX
-* Selección del modelo Whisper
-* **Selector de Género Profesional**: Permite definir si quien entrevista es "Psicólogo" o "Psicóloga" para una personalización total del documento.
-* Botones de acción con retroalimentación visual
-* Barra de progreso dinámica
-* Consola interna de eventos
-* Ventana “Acerca de” integrada
-* Control seguro de cierre durante procesos activos
-
-La interfaz está optimizada para pantallas **HiDPI**, con renderizado mejorado de imágenes, sombras y relieve visual.
-
----
-
-## 📷 Capturas de pantalla
-
-<p align="center">
-  <img src="images/screenshot.png?v=2" alt="Vista previa de la aplicación" width="600"/>
-</p>
-
----
-
-## ⚙️ Arquitectura del sistema
+## ⚙️ Arquitectura del Sistema
 
 ```
 Transcripciones/
 │
-├─ gui/                # Interfaz gráfica (ventanas, widgets, diálogos)
-├─ core/               # Lógica de transcripción, orquestación e i18n
-├─ utils/              # Utilidades de texto, tiempo y recursos
-├─ exporters/          # Motor RunMatcher y exportación DOCX
-├─ assets/             # Recursos institucionales (imágenes, fuentes, locales)
-├─ whisper_env/        # Entorno virtual aislado
-├─ worker.py           # Proceso de transcripción (multiprocessing)
+├─ gui/                # Interfaz gráfica institucional (HiDPI)
+├─ core/               # Motores V40 (Orquestador, Post-procesamiento, i18n)
+├─ utils/              # Diccionario Tarija (OSM), léxico institucional
+├─ exporters/          # Motor RunMatcher y exportación DOCX Quirúrgica
+├─ models_cache/       # Modelos IA locales (Whisper, Pyannote, Wav2Vec2)
+├─ whisper_env/        # Entorno virtual con soporte CUDA 12.1
+├─ output/             # Destino de documentos institucionales
 └─ main.py             # Punto de entrada de la aplicación
 ```
 
 ---
 
-## 🔐 Seguridad y control de ejecución
+## 🚀 Ejecución del Sistema
 
-El sistema incluye mecanismos para:
+La aplicación está diseñada para la portabilidad total:
 
-* Evitar ejecuciones simultáneas
-* Bloquear botones durante la transcripción (bloqueo lógico, no visual)
-* Confirmar cierre si hay procesos activos
-* Validar existencia de archivos críticos
-* Detectar movimientos indebidos de la carpeta base
-* Mantener portabilidad sin uso del registro de Windows
+1. **iniciar.vbs**: Ejecución invisible que verifica el entorno, componentes de GPU y crea el acceso directo en el escritorio.
+2. **ejecutar.bat**: Lanzador directo del entorno virtual optimizado.
 
 ---
 
-## 🚀 Ejecución del sistema
+## 📦 Requisitos Técnicos
 
-El usuario final **no necesita interactuar con la consola**.
-
-La aplicación se inicia mediante:
-
-* Acceso directo creado automáticamente (con icono de alta resolución)
-* Ejecución directa de `main.py` (vía entorno virtual) o binario compilado.
+* **SO**: Windows 10 / 11 (64-bit).
+* **Hardware**: Tarjeta de Video NVIDIA (Recomendado para velocidad Élite).
+* **Entorno**: Contenido íntegramente en la carpeta `whisper_env`.
 
 ---
 
-## 📦 Requisitos técnicos
+## 🏛 Enfoque Institucional
 
-* Windows 10 / 11
-* Python 3.10+
-* GPU opcional (CUDA recomendado para modelos grandes)
+Este proyecto redefine la precisión documental en Bolivia:
 
-Dependencias principales:
-
-* `faster-whisper`
-* `torch`
-* `pyannote.audio`
-* `python-docx`
-* `Pillow`
-
-> Todas las dependencias se encuentran contenidas dentro del entorno virtual `whisper_env`.
-
----
-
-## 🧾 Formatos de salida
-
-* **DOCX PROFESIONAL** → Documento de alta fidelidad con hablantes resaltados quirúrgicamente y formato institucional Arial 11. (Se ha optimizado el flujo eliminando el formato TXT para centrarse en la excelencia documental).
-
----
-
-## 🏛 Enfoque institucional
-
-Este proyecto fue diseñado con criterios de:
-
-* **Precisión Documental**: Resaltado automático de actores clave en el proceso psicológico/judicial.
-* **Usabilidad**: Para personal no técnico.
-* **Estabilidad operativa**: Gestión robusta de memoria y hilos.
-* **Presentación profesional**: Documentos listos para archivo oficial.
-
----
-
-## 📄 Licencia
-
----
-
-### Licencia privada / institucional
-
-Uso restringido a fines **internos o institucionales**.
-La redistribución, modificación o comercialización requiere autorización expresa del autor.
+* **Fidelidad Forense**: Respeta silencios, pausas reflexivas y turnos gramaticales.
+* **Contexto Local**: Optimizado para el léxico de la FELCV, SLIM y el Ministerio Público.
+* **Privacidad Total**: Procesamiento 100% offline (una vez descargados los modelos).
 
 ---
 
@@ -162,16 +88,12 @@ Software Developer
 📍 Tarija, Bolivia <img src="https://flagcdn.com/w20/bo.png" width="20"/> <br>
 📧 [pharmakoz@gmail.com](mailto:pharmakoz@gmail.com) 
 
-© 2026 — QR - Generator
+© 2026 — Transcriptor Élite
 
 --- 
 
 ## ⭐ Estado del proyecto
 
-✔ Estable
-✔ En producción
-✔ Orientado a uso profesional
-
----
-
-⭐ Si este proyecto te resulta útil, considera dejar una estrella en el repositorio.
+✔ Nivel Forense Alcanzado
+✔ Producción Estable
+✔ Optimización por GPU Activa

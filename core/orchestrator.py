@@ -1,11 +1,12 @@
 import os
 import gc
 import torch
+import whisperx
 from typing import Callable, Optional
 
-from core.models import cargar_modelos
-from core.transcription import transcribir, asignar_texto
-from core.postprocess import identificar_psicologa, fusionar
+from core.models import cargar_modelos, cargar_modelo_alineacion
+from core.transcription import transcribir_v30, asignar_texto_v30
+from core.postprocess import identificar_psicologa, fusionar, refinar_turnos, limpiar_alucinaciones, suavizar_hablantes
 from exporters.docx_exporter import export_to_docx
 
 class TranscriptorOrchestrator:
@@ -60,10 +61,16 @@ class TranscriptorOrchestrator:
         self._log(f"🔎 Mapeo finalizado. {len(to_process)} de {len(all_audios)} audios serán procesados.")
 
         # 1. Cargar modelos
-        self._log("⏳ Cargando modelos...")
+        self._log("⏳ Cargando motores de inteligencia (V30)...")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
         whisper_model, diar_pipeline = cargar_modelos(model_name, hf_token)
+        
+        # Cargar motor de alineación fonética (Wav2Vec2)
+        self._log("   - Sincronizando alineación fonética (Español)...")
+        align_model, align_metadata = cargar_modelo_alineacion("es", device)
+        
         self._update_progress(5)
-        self._log("✅ Modelos cargados correctamente\n")
+        self._log("✅ Motores V30 listos para nivel forense\n")
 
         total = len(to_process)
         for idx, filename in enumerate(to_process, start=1):
@@ -73,40 +80,70 @@ class TranscriptorOrchestrator:
 
             self._log(f"🎙 Procesando {filename} ({idx}/{total})...")
 
-            # 2. Transcripción
-            self._log("   - Transcribiendo...")
-            segments_w = transcribir(audio_path, whisper_model, idioma="es")
-            self._update_progress(prog_base + (100 / total) * 0.4)
+            try:
+                # 2. Transcripción y Alineación Quirúrgica (V32 - Sincronía Fina)
+                self._log("   - Transcribiendo audio (Motor WhisperX)...")
+                audio = whisperx.load_audio(audio_path)
 
-            # 3. Diarización
-            self._log("   - Diarizando...")
-            diarization = diar_pipeline(audio_path)
-            self._update_progress(prog_base + (100 / total) * 0.6)
+                result = whisper_model.transcribe(
+                    audio, 
+                    batch_size=16, 
+                    language="es"
+                )
+                self._update_progress(prog_base + (100 / total) * 0.3)
 
-            # 4. Post-proceso
-            self._log("   - Asignando hablantes...")
-            assigned = asignar_texto(segments_w, diarization)
-            prof_id = identificar_psicologa(assigned)
-            
-            labeled = [
-                {
-                    "speaker": prof_gender if s["speaker_raw"] == prof_id else "Víctima", 
-                    "text": s["text"]
-                } 
-                for s in assigned
-            ]
-            final_segments = fusionar(labeled)
-            self._update_progress(prog_base + (100 / total) * 0.8)
+                self._log("   - Sincronizando palabras (Alineación Fonética)...")
+                result = whisperx.align(result["segments"], align_model, align_metadata, audio, device, return_char_alignments=False)
+                self._update_progress(prog_base + (100 / total) * 0.5)
 
-            # 5. Exportación
-            docx_path = os.path.join(self.output_dir, f"{base_name}_transcrito.docx")
-            self._log("   - Generando DOCX profesional...")
-            export_to_docx(final_segments, docx_path, template)
-            
-            self._update_progress(prog_base + (100 / total))
-            self._log(f"✅ DOCX generado: {filename}\n")
+                self._log("   - Identificando voces (Diarización de Precisión)...")
+                diar_segments = diar_pipeline(audio_path, min_speakers=2, max_speakers=2)
+                self._update_progress(prog_base + (100 / total) * 0.7)
 
-            # 6. Limpieza de memoria
+                self._log("   - Asignando turnos y normalizando texto...")
+                result = whisperx.assign_word_speakers(diar_segments, result)
+                assigned = asignar_texto_v30(result["segments"])
+                self._update_progress(prog_base + (100 / total) * 0.8)
+                
+                # Identificación automática del profesional (Psicólogo/a)
+                prof_id = identificar_psicologa(assigned)
+                
+                # Mapeo final de etiquetas institucionales y Limpieza de Alucinaciones
+                labeled = []
+                for s in assigned:
+                    speaker_label = prof_gender if s["speaker_raw"] == prof_id else "Víctima"
+                    
+                    # Limpieza quirúrgica de alucinaciones (V31+)
+                    texto_limpio = limpiar_alucinaciones(s["text"])
+                    
+                    labeled.append({
+                        "speaker": speaker_label,
+                        "text": texto_limpio,
+                        "start": s.get("start", 0),
+                        "end": s.get("end", 0)
+                    })
+
+                # Refinamiento Élite: Suavizar parpadeos y detectar preguntas fusionadas
+                smoothed = suavizar_hablantes(labeled, umbral_breve=1.0)
+                refined = refinar_turnos(smoothed, prof_gender)
+
+                # Fusión final de segmentos con límite de silencio de equilibrio (V34: 1.3s)
+                final_segments = fusionar(refined, max_silencio=1.3)
+                self._update_progress(prog_base + (100 / total) * 0.8)
+
+                # 4. Exportación Profesional DOCX
+                docx_path = os.path.join(self.output_dir, f"{base_name}_transcrito.docx")
+                self._log("   - Generando DOCX institucional (Arial 11)...")
+                export_to_docx(final_segments, docx_path, template)
+                
+                self._update_progress(prog_base + (100 / total))
+                self._log(f"✅ DOCX V32 generado con éxito: {filename}\n")
+
+            except Exception as e:
+                self._log(f"❌ Error procesando {filename}: {str(e)}")
+                continue
+
+            # 5. Limpieza agresiva de memoria para eficiencia industrial
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()

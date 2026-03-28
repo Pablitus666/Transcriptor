@@ -1,5 +1,5 @@
 {
-    "app.title": "Transcriptor",
+    "app.title": "Transcriptor V1.0",
     "label.audio_folder": "Carpeta de audios:",
     "label.template_docx": "Plantilla DOCX:",
     "label.whisper_model": "Modelo Whisper:",

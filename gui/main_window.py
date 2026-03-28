@@ -10,6 +10,7 @@ from PIL import Image, ImageTk, ImageFilter, ImageOps
 from core.image_manager import ImageManager
 from core import resources
 from core.i18n import _
+from config import persistence
 from gui.widgets import create_image_button
 from gui.about_window import AboutWindow
 from gui.dialogs import StyledDialog
@@ -27,15 +28,20 @@ class TranscriptorGUI:
         self.root.title(_("app.title"))
         self.root.configure(bg=BG_COLOR)
 
-        # Inicializar el motor visual modular
+        # Inicializar el motor visual modular e internacionalización
         self.image_manager = ImageManager(self.root)
+        self.config = persistence.load_config()
 
-        self.carpeta_var = tk.StringVar()
-        self.plantilla_var = tk.StringVar()
-        self.modelo_var = tk.StringVar(value="large-v3")
+        # Las rutas de trabajo NO se guardan para evitar clics extras al cambiar de caso
+        self.carpeta_var = tk.StringVar(value="")
+        self.plantilla_var = tk.StringVar(value="")
+        
+        # Solo persistimos el modelo y el token de Hugging Face
+        self.modelo_var = tk.StringVar(value=self.config.get("model", "large-v3"))
+        self.hf_token_var = tk.StringVar(value=self.config.get("hf_token", ""))
         self.transcribiendo = False
         
-        # Rutas de assets usando el nuevo gestor modular
+        # Rutas de assets
         self.title_path = resources.image_path("titulo.png")
         self.logo_path = resources.image_path("logo.png")
         self.icon_path = resources.image_path("icon.ico")
@@ -63,6 +69,8 @@ class TranscriptorGUI:
         self.root.deiconify()
 
     def on_closing(self):
+        # Guardar configuración antes de cerrar
+        self.guardar_config_actual()
         if self.transcribiendo:
             dialog = StyledDialog(self.root, _("dialog.exit.title"), 
                                   _("dialog.exit.message"),
@@ -73,6 +81,57 @@ class TranscriptorGUI:
                 self.root.destroy()
         else:
             self.root.destroy()
+
+    def guardar_config_actual(self):
+        """Sincroniza el estado de la UI con el archivo config.json."""
+        self.config["last_folder"] = self.carpeta_var.get()
+        self.config["last_template"] = self.plantilla_var.get()
+        self.config["model"] = self.modelo_var.get()
+        self.config["hf_token"] = self.hf_token_var.get()
+        self.config["prof_gender"] = self.genero_profesional_var.get()
+        persistence.save_config(self.config)
+
+    def mostrar_config_token(self):
+        """Diálogo profesional para configurar el token de Hugging Face sin parpadeos."""
+        if self.transcribiendo: return
+        
+        # Crear y ocultar inmediatamente para evitar parpadeo
+        dialog_win = tk.Toplevel(self.root)
+        dialog_win.withdraw() 
+        
+        dialog_win.title("Configuración")
+        dialog_win.configure(bg=BG_COLOR)
+        dialog_win.resizable(False, False)
+        dialog_win.transient(self.root)
+        dialog_win.grab_set()
+
+        # ASIGNAR ICONO INSTITUCIONAL
+        try:
+            dialog_win.iconbitmap(self.icon_path)
+        except:
+            pass
+
+        # Centrar respecto a la principal (Cálculo antes de mostrar)
+        ww, wh = 450, 200
+        px = self.root.winfo_x() + (self.root.winfo_width() // 2) - (ww // 2)
+        py = self.root.winfo_y() + (self.root.winfo_height() // 2) - (wh // 2)
+        dialog_win.geometry(f"{ww}x{wh}+{px}+{py}")
+
+        tk.Label(dialog_win, text="Hugging Face Token (Pyannote):", bg=BG_COLOR, fg=TEXT_COLOR, font=(FONT_FAMILY, 11, "bold")).pack(pady=(20, 10))
+        entry = tk.Entry(dialog_win, textvariable=self.hf_token_var, width=45, font=(FONT_FAMILY, 10), bg="#f0f0f0", fg="black")
+        entry.pack(pady=5, padx=20)
+        entry.focus_set()
+
+        def save_and_close():
+            self.guardar_config_actual()
+            dialog_win.destroy()
+
+        btn_frame = tk.Frame(dialog_win, bg=BG_COLOR)
+        btn_frame.pack(pady=15)
+        create_image_button(btn_frame, "Guardar", save_and_close, self.image_manager, self.boton_path, (110, 38), font=(FONT_FAMILY, 10, "bold")).pack()
+
+        # Mostrar solo cuando todo está listo y en su posición final
+        dialog_win.deiconify()
 
     def centrar_ventana(self, width, height):
         self.root.update_idletasks()
@@ -133,6 +192,10 @@ class TranscriptorGUI:
             title_label = tk.Label(header_content, image=title_photo, bg=BG_COLOR)
             title_label.image = title_photo
             title_label.grid(row=0, column=2)
+            
+        # Botón de Configuración (Elegante y pequeño en la esquina superior derecha del header)
+        btn_config = create_image_button(frm_header, "⚙", self.mostrar_config_token, self.image_manager, self.boton_path, (45, 45), font=(FONT_FAMILY, 14, "bold"))
+        btn_config.grid(row=0, column=3, sticky="e", padx=(10, 0))
 
         separator = tk.Frame(self.root, bg="#cccccc", height=1)
         separator.pack(fill='x', padx=40, pady=2)

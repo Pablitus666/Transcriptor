@@ -143,64 +143,77 @@ def add_page_number(paragraph):
 def export_to_docx(segments, output_path, template_path=None):
     """
     Genera un archivo DOCX con inteligencia lingüística enfocada.
-    Resalta hablantes en párrafos, encabezados y pies de página, pero ignora TABLAS.
+    Resalta hablantes en párrafos, encabezados y pies de página, pero ignora TABLAS
+    para proteger datos institucionales (como el nombre del Fiscal).
     """
-    # Lista de palabras clave base (el motor expande tildes, géneros y exige ':')
     keywords = ["Psicologo", "Psicologa", "Victima"]
     bold_pattern = _compile_super_regex(keywords)
 
     if template_path:
         doc = Document(template_path)
-        placeholder_found = False
         
-        # 1. Inserción de la transcripción en el marcador {{TRANSCRIPCION}}
-        for p in list(doc.paragraphs):
-            if "{{TRANSCRIPCION}}" in p.text:
-                style = p.style
-                alignment = p.alignment
-                
-                for i, segment in enumerate(segments):
-                    text_content = f"{segment['speaker']}: {segment['text']}"
-                    text_p = p.insert_paragraph_before(text_content, style)
-                    text_p.alignment = alignment
-
-                    # Forzar estilo Arial 11 en la inserción
-                    for run in text_p.runs:
-                        run.font.name = 'Arial'
-                        run.font.size = Pt(11)
+        # --- 1. BUSCAR Y REEMPLAZAR MARCADOR (Cuerpo y Tablas) ---
+        def procesar_parrafos_para_insercion(paragraphs):
+            encontrado = False
+            for p in list(paragraphs):
+                if "{{TRANSCRIPCION}}" in p.text:
+                    style = p.style
+                    alignment = p.alignment
                     
-                    if i < len(segments) - 1:
-                        empty_p = p.insert_paragraph_before("", style)
-                        run = empty_p.add_run(' ')
-                        run.font.name = 'Arial'
-                        run.font.size = Pt(11)
+                    for i, segment in enumerate(segments):
+                        text_content = f"{segment['speaker']}: {segment['text']}"
+                        text_p = p.insert_paragraph_before(text_content, style)
+                        text_p.alignment = alignment
 
-                p._element.getparent().remove(p._element)
-                placeholder_found = True
+                        for run in text_p.runs:
+                            run.font.name = 'Arial'
+                            run.font.size = Pt(11)
+                        
+                        if i < len(segments) - 1:
+                            empty_p = p.insert_paragraph_before("", style)
+                            run = empty_p.add_run(' ')
+                            run.font.name = 'Arial'
+                            run.font.size = Pt(11)
+
+                    p._element.getparent().remove(p._element)
+                    encontrado = True
+            return encontrado
+
+        # Buscar en cuerpo
+        placeholder_found = procesar_parrafos_para_insercion(doc.paragraphs)
         
-        # 2. ESCANEO QUIRÚRGICO (Ignora Tablas):
-        # Procesamos solo los párrafos libres del documento, encabezados y pies.
+        # Buscar en tablas (Solo para el marcador, no aplicamos negritas aquí)
+        if not placeholder_found:
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        if procesar_parrafos_para_insercion(cell.paragraphs):
+                            placeholder_found = True
+                            break
         
-        # A. Cuerpo (Donde está la transcripción recién insertada)
+        # --- 2. ESCANEO QUIRÚRGICO DE NEGRITAS (Solo Párrafos Libres) ---
+        # No procesamos tablas aquí para proteger nombres de fiscales y otros datos.
+        
         for p in doc.paragraphs:
             matcher = RunMatcher(p, bold_pattern)
             matcher.format_matches()
 
-        # B. Secciones (Encabezados y Pies de página - SOLO PÁRRAFOS LIBRES)
         for section in doc.sections:
-            # Procesar párrafos del encabezado (pero no sus tablas)
             for p in section.header.paragraphs:
                 matcher = RunMatcher(p, bold_pattern)
                 matcher.format_matches()
                 
-            # Procesar párrafos del pie de página (pero no sus tablas)
             for p in section.footer.paragraphs:
                 matcher = RunMatcher(p, bold_pattern)
                 matcher.format_matches()
         
         if not placeholder_found:
+            # Si no hay marcador, añadir al final
             for s in segments:
                 p = doc.add_paragraph(f"{s['speaker']}: {s['text']}")
+                for run in p.runs:
+                    run.font.name = 'Arial'
+                    run.font.size = Pt(11)
                 matcher = RunMatcher(p, bold_pattern)
                 matcher.format_matches()
 
