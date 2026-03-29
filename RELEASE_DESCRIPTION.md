@@ -22,10 +22,13 @@ Implementación de un algoritmo de consolidación que unifica textos del mismo h
 Migración al motor WhisperX con soporte para aceleración por hardware.
 * **Rendimiento**: Optimización para NVIDIA CUDA 12.1, permitiendo el procesamiento de audios en una fracción del tiempo original mediante el uso de la GPU.
 
-### 📍 Diccionario Geográfico de Tarija
-Carga de base de datos local para la normalización de texto.
-* **Datos**: 1,120 nombres oficiales de calles y barrios obtenidos de OpenStreetMap.
-* **Aplicación**: Asegura la ortografía y capitalización correcta de direcciones mencionadas durante las entrevistas.
+### 📍 Diccionario Nacional de Bolivia
+Integración de una base de datos expandida para la normalización de texto.
+* **Datos**: 934 nombres y apellidos comunes en Bolivia y 1,120 nombres de calles de Tarija.
+* **Aplicación**: Asegura la ortografía y capitalización correcta de nombres propios y direcciones en todo el territorio nacional.
+
+### ⚡ Optimización de Rendimiento
+* **Búsqueda O(1)**: Implementación de mapas de léxico para una consulta instantánea del vocabulario, garantizando fluidez sin importar el tamaño de los diccionarios.
 
 ### 🖋️ Manejo Quirúrgico de XML (DOCX)
 Uso del motor RunMatcher para la edición de archivos Word.

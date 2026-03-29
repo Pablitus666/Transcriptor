@@ -16,7 +16,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ¡Bienvenido/a a Transcriptor!
 Esta aplicación transcribe archivos de audio a texto de forma automática, 
 identificando oradores mediante lógica gramatical y optimizada para el 
-contexto de Tarija, Bolivia.
+contexto de Bolivia.
 
 
 ================================================================================
@@ -76,7 +76,7 @@ completa desde el archivo original.
        preciso y el sistema lo ejecutará automáticamente en tu tarjeta de video.
 
     4. Haz clic en "Transcribir": El proceso comenzará. Puedes ver el avance
-       quirúrgico en la barra de progreso de la aplicación.
+       en la barra de progreso de la aplicación.
 
 ================================================================================
 >> RESULTADOS <<
@@ -90,4 +90,4 @@ se guardarán automáticamente en la carpeta:
 ================================================================================
 
 Desarrollado por: Pablo Téllez A.
-Versión: 4.0.0 (Edición Forense)
+Versión: 1.0.0

@@ -30,7 +30,7 @@ El sistema aprovecha la **GPU (NVIDIA CUDA)** para reducir los tiempos de proces
 * **Aceleración por hardware**: Soporte nativo para **NVIDIA CUDA 12.1**.
 * **Lógica Gramatical de Turnos**: Sistema de reasignación automática que identifica el patrón "Pregunta-Respuesta" para corregir errores de diarización.
 * **Fusión de oradores**: Algoritmo que unifica segmentos consecutivos del mismo hablante para evitar etiquetas duplicadas.
-* **Diccionario de Tarija**: Integración de **1,120 nombres de calles y barrios** extraídos de OpenStreetMap para una capitalización correcta.
+* **Diccionario Nacional**: Integración de nombres de calles de Tarija y una base de datos de **934 nombres y apellidos** comunes en toda Bolivia para una capitalización y ortografía correcta.
 * **Motor RunMatcher**: Manipulación de XML interno de Word para aplicar negritas y subrayados en los encabezados de orador sin alterar la fuente Arial 11.
 * **Soporte Multi-idioma**: Interfaz con detección automática para 9 idiomas.
 * Procesamiento asíncrono en segundo plano para mantener la estabilidad de la interfaz.
