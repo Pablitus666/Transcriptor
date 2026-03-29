@@ -15,37 +15,28 @@ TITULOS_CARGOS = {
 SIGLAS_INSTITUCIONALES = {
     "SLIM", "DNA", "FELCV", "FELCC", "MP", "IDIF", "CUD", "SEPDAVI", "UPAVIT", 
     "DAG", "SIJPLU", "CENVIC", "REJAP", "SIPPA", "TJA", "BOL", "EPI", "SENAC",
-    "VCM", "NNA", "FATECIPOL", "UTOP", "PAC", "DAC", "MANGER"
+    "VCM", "NNA", "FATECIPOL", "UTOP", "PAC", "DAC", "MANGER", "DNNA"
 }
 
-# --- 3. ENTIDADES Y LUGARES (Capitalización Correcta) ---
-ENTIDADES_PROPIAS = {
-    "Tarija", "Bolivia", "San Martín", "Puente San Martín", "Luis de Fuentes", 
-    "Senac", "Miraflores", "Velasco", "Villamontes", "Bermejo", "Yacuiba",
-    "Juan XXIII", "Erika", "Bovarín", "Vázquez", "Sandra", "Lorena", "Condori",
-    "Guerrero", "Rodrigo", "Cristian", "Choque", "Torito", "Giovana", "Salinas",
-    "Berruga", "Ministerio Público", "Policía Boliviana",
-    "Defensoría de la Niñez", "Servicio Legal Integral Municipal", "Altamira",
-    "Lourdes", "Morros", "Blanca", "Flor", "Tabladita", "Villa Abaroa", 
-    "La Loma", "Padcaya", "Barrio", "Mercado", "Campesino"
+# --- 3. ENTIDADES Y LUGARES (Núcleo estructural) ---
+ENTIDADES_PROPIAS_BASE = {
+    "Tarija", "Bolivia", "Ministerio Público", "Policía Boliviana",
+    "Defensoría de la Niñez", "Servicio Legal Integral Municipal",
+    "Puente San Martín", "Luis de Fuentes", "Juan XXIII",
+    "Barrio", "Mercado", "Campesino", "Villa Abaroa", "La Loma",
+    "Senac", "Miraflores", "Velasco", "Villamontes", "Bermejo", "Yacuiba"
 }
 
-# --- 4. APELLIDOS Y NOMBRES COMUNES (Para evitar alucinaciones) ---
-NOMBRES_REFERENCIA = {
-    "Mamani", "Quispe", "Condori", "Choque", "Vargas", "Guzmán", "Pinto", 
-    "Sánchez", "Torres", "Flores", "Rojas", "Zeballos", "Téllez",
-    "Villca", "Aruquipa", "Yucra", "Nina", "Copa", "Apaza", "Limachi",
-    "Alarcón", "Antezana", "Aparicio", "Arancibia", "Aliaga", "Machicado", 
-    "Corrillo", "Cuiza", "Gallardo", "Husler", "Jurado", "Valdez", "Cortez",
-    "Jhoanes", "Abelina", "Adán", "Adolfo", "Alexia", "Aníbal", "Aparicio",
-    "Benítez", "Cardozo", "Escalante", "Figueroa", "Gutiérrez", "Heredia",
-    "Ibáñez", "Jiménez", "López", "Méndez", "Navarro", "Orozco", "Peralta",
-    "Quintana", "Ramírez", "Serrano", "Ugarte", "Vaca", "Zambrana",
-    "Pamela", "Obando", "Loayza", "Marcia", "Peralta", "Liliana", "Espinoza",
-    "Litzi", "Villegas", "Erica", "Bobarin", "Vasquez", "Nelson", "Gareca",
-    "Ruiz", "Beymar", "Vera", "Nayda", "Wilson", "Carvajal", "Romina",
-    "Aramayo", "Ricaldi", "Siles", "Noelia", "Camacho", "Yandira", "Lucía"
-}
+# --- 4. CARGAR NOMBRES Y APELLIDOS (Desde JSON) ---
+NOMBRES_REFERENCIA = set()
+try:
+    names_path = os.path.join(os.path.dirname(__file__), "person_names.json")
+    if os.path.exists(names_path):
+        with open(names_path, "r", encoding="utf-8") as f:
+            nombres = json.load(f)
+            NOMBRES_REFERENCIA = {n.strip() for n in nombres if n.strip()}
+except Exception:
+    pass
 
 # --- 5. CARGAR CALLES DE TARIJA (Desde JSON) ---
 CALLES_TARIJA = set()
@@ -56,19 +47,40 @@ try:
     if os.path.exists(json_path):
         with open(json_path, "r", encoding="utf-8") as f:
             calles = json.load(f)
-            CALLES_TARIJA = set(calles)
-            # Creamos un patrón optimizado que busca cualquier calle de la lista
-            # Ordenamos por longitud descendente para que 'Av. Victor Paz' coincida antes que 'Av. Victor'
-            sorted_streets = sorted(calles, key=len, reverse=True)
+            # Normalizamos calles: añadimos versiones cortas comunes
+            extra_calles = {"Avenida Víctor Paz", "Avenida Victor Paz", "Calle Colón", "Calle Colon"}
+            CALLES_TARIJA = set(calles).union(extra_calles)
+            
+            sorted_streets = sorted(list(CALLES_TARIJA), key=len, reverse=True)
             pattern_str = "|".join(re.escape(s) for s in sorted_streets)
             STREET_PATTERN = re.compile(rf"\b({pattern_str})\b", re.IGNORECASE)
 except Exception:
     pass
 
-# Unimos todo para el Lexico Global
-LEXICO_GLOBAL = SIGLAS_INSTITUCIONALES.union(ENTIDADES_PROPIAS).union(NOMBRES_REFERENCIA).union(TITULOS_CARGOS)
+# --- 6. PATRÓN DE ENTIDADES MULTI-PALABRA ---
+sorted_entities = sorted(ENTIDADES_PROPIAS_BASE, key=len, reverse=True)
+entity_pattern_str = "|".join(re.escape(e) for e in sorted_entities)
+ENTITY_PATTERN = re.compile(rf"\b({entity_pattern_str})\b", re.IGNORECASE)
 
-# --- 6. MAPEO DE CORRECCIONES QUIRÚRGICAS (Pre-compiladas V1.0) ---
+# --- 7. LÉXICO GLOBAL (Consolidado como Diccionario de Búsqueda Rápida) ---
+# Mapeamos {palabra_en_minusculas: PalabraCorrectamenteCapitalizada}
+LEXICO_GLOBAL_MAP = {}
+
+def _cargar_lexico():
+    global LEXICO_GLOBAL_MAP
+    # Unimos todos los sets en uno solo para procesar
+    union_lexico = SIGLAS_INSTITUCIONALES.union(ENTIDADES_PROPIAS_BASE).union(NOMBRES_REFERENCIA).union(TITULOS_CARGOS)
+    
+    # Construimos el mapa de búsqueda rápida
+    for item in union_lexico:
+        # Si el item ya existe (ej: "Dra" y "DRA"), priorizamos la versión con minúsculas si no es sigla
+        low = item.lower()
+        if low not in LEXICO_GLOBAL_MAP or item.isupper():
+            LEXICO_GLOBAL_MAP[low] = item
+
+_cargar_lexico()
+
+# --- 8. MAPEO DE CORRECCIONES QUIRÚRGICAS (Pre-compiladas V1.0) ---
 CORRECCIONES_FONETICAS_RAW = {
     r"\bfel\s+se\s+ve\b": "FELCV",
     r"\bfel\s+ce\s+ve\b": "FELCV",
@@ -123,17 +135,25 @@ STOP_WORDS_ES = {
 }
 
 def capitalizacion_inteligente(texto: str) -> str:
-    # 1. Primero corregimos frases completas de calles (multi-palabra) usando el patrón optimizado
+    # 1. Primero corregimos frases completas de calles (multi-palabra)
     if STREET_PATTERN:
         def replace_street(match):
             found = match.group(0).lower()
-            # Buscamos la versión original con capitalización correcta en nuestro set
             for original in CALLES_TARIJA:
                 if original.lower() == found:
                     return original
-            return match.group(0) # Fallback (no debería pasar)
-            
+            return match.group(0)
         texto = STREET_PATTERN.sub(replace_street, texto)
+
+    # 2. Corregimos entidades multi-palabra (NUEVO)
+    if ENTITY_PATTERN:
+        def replace_entity(match):
+            found = match.group(0).lower()
+            for original in ENTIDADES_PROPIAS_BASE:
+                if original.lower() == found:
+                    return original
+            return match.group(0)
+        texto = ENTITY_PATTERN.sub(replace_entity, texto)
 
     palabras = texto.split()
     if not palabras: return ""
@@ -147,9 +167,11 @@ def capitalizacion_inteligente(texto: str) -> str:
             continue
             
         encontrado = False
+        # Buscamos en el léxico global ignorando mayúsculas/minúsculas
+        limpia_lower = limpia.lower()
         for lex in LEXICO_GLOBAL:
-            if lex.lower() == limpia:
-                # Preservamos puntuación original
+            if lex.lower() == limpia_lower:
+                # Preservamos puntuación original (ej. "tarija," -> "Tarija,")
                 p_final = lex + palabra[len(limpia):]
                 resultado.append(p_final)
                 encontrado = True
@@ -157,7 +179,7 @@ def capitalizacion_inteligente(texto: str) -> str:
         
         if encontrado: continue
         
-        # Si la palabra ya venía en mayúscula, la respetamos a menos que sea stop word
+        # Si la palabra ya venía en mayúscula (por patrones multi-palabra o Whisper), la respetamos
         if palabra and palabra[0].isupper():
             if limpia in STOP_WORDS_ES and i > 0:
                 resultado.append(palabra.lower())

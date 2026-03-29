@@ -157,8 +157,21 @@ class TranscriptorOrchestrator:
                 
             self._log(f"🎊 ¡Pipeline Élite V1.0 finalizado con éxito! ({total_files} archivos)")
 
+        except torch.cuda.OutOfMemoryError:
+            self._log("❌ Error: Se agotó la memoria de la GPU (VRAM).")
+            self._log("💡 Sugerencia: Cierra otros programas que usen la GPU o usa un modelo más pequeño (base o small).")
+            models.liberar_gpu()
+        except ConnectionError:
+            self._log("❌ Error: No se pudo conectar con Hugging Face.")
+            self._log("💡 Sugerencia: Verifica tu conexión a internet o el Token de acceso.")
         except Exception as e:
-            self._log(f"❌ Error crítico en el Pipeline: {str(e)}")
+            error_msg = str(e)
+            if "401" in error_msg:
+                self._log("❌ Error: Token de Hugging Face inválido o sin permisos.")
+            elif "out of memory" in error_msg.lower():
+                self._log("❌ Error: Memoria GPU insuficiente.")
+            else:
+                self._log(f"❌ Error crítico en el Pipeline: {error_msg}")
             models.liberar_gpu()
 
         if self.queue:
