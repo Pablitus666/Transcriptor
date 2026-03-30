@@ -14,6 +14,7 @@ ENTREVISTA INFORMATIVA.docx
 ENTREVISTA INFORMATIVA.pdf
 *.txt
 !requirements.txt
+!README.txt
 
 # Scripts de desarrollo y comparación
 *.py

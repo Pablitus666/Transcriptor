@@ -8,86 +8,87 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 ================================================================================
 |                                                                              |
-|   Transcriptor V1.0 - Manual de Usuario                                      |
+|   Transcriptor V1.0 - Guía de Inicio Rápido                                  |
 |                                                                              |
 ================================================================================
 
-
-¡Bienvenido/a a Transcriptor!
-Esta aplicación transcribe archivos de audio a texto de forma automática, 
-identificando oradores mediante lógica gramatical y optimizada para el 
-contexto de Bolivia.
+Esta aplicación automatiza la transcripción de audios a formato Word (.docx),
+identificando oradores mediante reglas gramaticales y un sistema de léxico
+geográfico y de nombres optimizado para Bolivia.
 
 
 ================================================================================
->> CÓMO INICIAR LA APLICACIÓN <<
+>> INSTALACIÓN Y ARRANQUE <<
 ================================================================================
 
-1.  COPIA LA CARPETA
-    Asegúrate de copiar la carpeta completa "Transcripciones" a la ubicación
-    deseada en tu equipo (por ejemplo, en Documentos o Escritorio).
+1.  UBICACIÓN DE LA CARPETA
+    Copie la carpeta completa "Transcripciones" a su equipo (ej. Escritorio).
 
-2.  PRIMERA EJECUCIÓN
-    Haz doble clic en el archivo:
+2.  INICIO DEL SISTEMA
+    Haga doble clic en el archivo:
 
         --> iniciar.vbs <--
 
-    La primera vez que ejecutes este archivo, el sistema:
-    *   Verificará la integridad de la carpeta y componentes de GPU.
-    *   Creará automáticamente un acceso directo llamado "Transcriptor" en tu
-        Escritorio para mayor comodidad.
+    En la primera ejecución, el sistema:
+    *   Configurará los componentes de aceleración por hardware (GPU).
+    *   Creará un acceso directo en su Escritorio llamado "Transcriptor".
 
-3.  EJECUCIONES POSTERIORES
-    A partir de la segunda vez, podrás iniciar la aplicación haciendo doble
-    clic en el acceso directo "Transcriptor" de tu Escritorio, o
-    directamente en `iniciar.vbs` si lo prefieres.
+3.  USO DIARIO
+    Utilice el acceso directo del Escritorio para abrir la aplicación.
 
 --------------------------------------------------------------------------------
-   ADVERTENCIA: ¡NO MOVER LA CARPETA!
+   IMPORTANTE: NO MOVER LA CARPETA
 --------------------------------------------------------------------------------
-Una vez que hayas ejecutado "iniciar.vbs" por primera vez, la carpeta
-"Transcripciones" no debe ser movida de su ubicación. Si lo haces, el sistema
-lo detectará y te mostrará un mensaje de advertencia.
-
-Si necesitas cambiarla de lugar, simplemente vuelve a copiar la carpeta
-completa desde el archivo original.
+Una vez ejecutado el sistema por primera vez, no mueva la carpeta original. 
+Si necesita cambiarla de ubicación, vuelva a realizar el paso 1 y 2 desde 
+la copia de respaldo.
 --------------------------------------------------------------------------------
 
 
 ================================================================================
->> REQUISITOS Y USO <<
+>> INSTRUCCIONES DE USO <<
 ================================================================================
 
-*   PRIMER USO Y CONEXIÓN A INTERNET
-    La PRIMERA VEZ que ejecutes una transcripción, la aplicación necesitará
-    descargar los modelos de inteligencia artificial. Asegúrate de tener
-    una conexión a internet activa y estable. Una vez descargados, la 
-    aplicación funcionará 100% sin conexión.
+*   SELECCIÓN DE AUDIOS (Drag & Drop)
+    Puede arrastrar una carpeta con audios o un archivo individual directamente
+    hacia la aplicación para cargar la ruta de forma instantánea.
 
-*   INSTRUCCIONES DE USO
-    1. Selecciona Carpeta de Audios: Haz clic en el primer botón "Examinar" y
-       elige la carpeta que contenga tus archivos de audio (.wav, .mp3, etc.).
+*   PLANTILLA DOCX (Opcional)
+    Si posee una plantilla institucional, selecciónela en el segundo campo.
+    El sistema recordará su elección para futuros usos.
 
-    2. Selecciona Plantilla DOCX (Opcional): Si quieres un formato
-       específico, selecciona tu plantilla de Word. Si no, se creará un
-       documento estándar.
+*   MODELO Y GÉNERO
+    - Modelo: Se recomienda "large-v3" para precisión técnica.
+    - Profesional: Seleccione "Psicólogo" o "Psicóloga" según corresponda 
+      para la etiqueta del entrevistador en el documento final.
 
-    3. Elige el Modelo: Selecciona un modelo de Whisper. "large-v3" es el más
-       preciso y el sistema lo ejecutará automáticamente en tu tarjeta de video.
+*   PROCESAMIENTO
+    Haga clic en "Transcribir". El sistema utilizará la tarjeta de video 
+    (NVIDIA CUDA) para procesar los audios en segundo plano.
 
-    4. Haz clic en "Transcribir": El proceso comenzará. Puedes ver el avance
-       en la barra de progreso de la aplicación.
+
+================================================================================
+>> REQUISITOS TÉCNICOS <<
+================================================================================
+
+1.  CONEXIÓN A INTERNET: Requerida ÚNICAMENTE la primera vez que transcriba
+    para descargar los modelos de IA. Luego el sistema es 100% OFFLINE.
+
+2.  HARDWARE: Optimizado para tarjetas de video NVIDIA.
+
 
 ================================================================================
 >> RESULTADOS <<
 ================================================================================
 
-Tus transcripciones finales (archivos .docx en formato Arial 11 institucional) 
-se guardarán automáticamente en la carpeta:
+Los documentos finales se guardarán automáticamente en la MISMA CARPETA donde
+se encuentran sus audios originales, con el prefijo:
 
-    --> output <--
+    --> ENTREVISTA INFORMATIVA_ <--
+
+Formato: Arial 11, interlineado sencillo y oradores resaltados en negrita.
 
 ================================================================================
 
 Desarrollado por: Pablo Téllez A.
-Versión: 1.0.0
+Versión: 1.0.0 (Marzo 2026)
