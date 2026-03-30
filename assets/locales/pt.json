@@ -11,6 +11,7 @@
     "button.clear": "Limpar",
     "button.exit": "Sair",
     "button.close": "Fechar",
+    "button.open": "Abrir",
     "button.accept": "Aceitar",
     "button.yes": "Sim",
     "button.no": "Não",
@@ -18,7 +19,10 @@
     "dialog.exit.message": "Um processo de transcrição está em curso.\nTem certeza que deseja sair?",
     "dialog.error.title": "Erro na Transcrição",
     "dialog.done.title": "Processo Concluído",
-    "error.invalid_folder": "Selecione uma pasta válida",
+    "error.invalid_folder": "Selecione una pasta válida",
     "log.starting": "🚀 Iniciando...",
+    "log.folder_detected": "📁 Pasta detectada",
+    "log.file_detected": "📄 Arquivo detectado",
+    "log.selecting_parent": "Selecionando pasta pai",
     "info.developed_by": "Desenvolvido por: \nPablo Téllez A.\n\nTarija - 2026."
 }

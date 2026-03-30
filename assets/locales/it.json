@@ -11,6 +11,7 @@
     "button.clear": "Cancella",
     "button.exit": "Esci",
     "button.close": "Chiudi",
+    "button.open": "Apri",
     "button.accept": "Accetta",
     "button.yes": "Sì",
     "button.no": "No",
@@ -20,5 +21,8 @@
     "dialog.done.title": "Processo completato",
     "error.invalid_folder": "Seleziona una cartella valida",
     "log.starting": "🚀 Avvio in corso...",
+    "log.folder_detected": "📁 Cartella rilevata",
+    "log.file_detected": "📄 File rilevato",
+    "log.selecting_parent": "Selezione cartella superiore",
     "info.developed_by": "Sviluppato da: \nPablo Téllez A.\n\nTarija - 2026."
 }

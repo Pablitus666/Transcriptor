@@ -34,6 +34,11 @@ Integración de una base de datos expandida para la normalización de texto.
 Uso del motor RunMatcher para la edición de archivos Word.
 * **Precisión**: Permite aplicar formatos de resaltado sin alterar las propiedades de la fuente Arial 11 ni corromper la estructura de las tablas institucionales.
 
+### 📁 Interfaz de Usuario Dinámica (Drag & Drop)
+Implementación de soporte para el arrastre de archivos desde el explorador de Windows.
+* **Productividad**: El usuario puede arrastrar una carpeta o un archivo de audio directamente al campo de entrada, eliminando la necesidad de navegar manualmente por los directorios.
+* **Lógica Inteligente**: Si se arrastra un archivo individual, el sistema selecciona automáticamente la carpeta contenedora para iniciar la búsqueda de audios.
+
 ---
 
 ## 🏗️ Arquitectura y Estabilidad

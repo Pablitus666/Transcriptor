@@ -5,6 +5,7 @@ import queue
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, ttk
 from PIL import Image, ImageTk, ImageFilter, ImageOps
+from tkinterdnd2 import DND_FILES
 
 # Importaciones de motor visual modular
 from core.image_manager import ImageManager
@@ -63,6 +64,10 @@ class TranscriptorGUI:
 
         self.crear_widgets()
         
+        # Registrar Drag & Drop
+        self.entry_carpeta.drop_target_register(DND_FILES)
+        self.entry_carpeta.dnd_bind('<<Drop>>', self._handle_drop)
+
         self.root.bind("<Delete>", self.limpiar_campos)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.check_queue()
@@ -114,7 +119,12 @@ class TranscriptorGUI:
         py = self.root.winfo_y() + (self.root.winfo_height() // 2) - (wh // 2)
         dialog_win.geometry(f"{ww}x{wh}+{px}+{py}")
 
-        tk.Label(dialog_win, text="Hugging Face Token (Pyannote):", bg=BG_COLOR, fg=TEXT_COLOR, font=(FONT_FAMILY, 11, "bold")).pack(pady=(20, 10))
+        tk.Label(dialog_win, text="Hugging Face Token (Opcional - Licencia Maestra Activa):", bg=BG_COLOR, fg=TEXT_COLOR, font=(FONT_FAMILY, 11, "bold")).pack(pady=(20, 5))
+        
+        # Nota explicativa sutil
+        tk.Label(dialog_win, text="Deje en blanco para usar el acceso maestro pre-configurado.", 
+                 bg=BG_COLOR, fg="#A1D6E2", font=(FONT_FAMILY, 8, "italic")).pack(pady=(0, 10))
+        
         entry = tk.Entry(dialog_win, textvariable=self.hf_token_var, width=45, font=(FONT_FAMILY, 10), bg="#f0f0f0", fg="black")
         entry.pack(pady=5, padx=20)
         entry.focus_set()
@@ -156,7 +166,10 @@ class TranscriptorGUI:
                     elif command == 'done':
                         self.desbloquear_botones()
                         self.progreso['value'] = 100
-                        StyledDialog(self.root, _("dialog.done.title"), str(data), dialog_type="success", image_manager=self.image_manager)
+                        # Pasar la carpeta actual para que el diálogo pueda abrirla
+                        StyledDialog(self.root, _("dialog.done.title"), str(data), 
+                                     dialog_type="success", image_manager=self.image_manager,
+                                     folder_path=self.carpeta_var.get())
                 elif isinstance(message, (int, float)):
                     self.progreso['value'] = message
         except queue.Empty: pass
@@ -255,6 +268,24 @@ class TranscriptorGUI:
         if self.transcribiendo: return
         self.carpeta_var.set("")
         self.progreso['value'] = 0
+
+    def _handle_drop(self, event):
+        """Maneja el evento de soltar archivos o carpetas (Drag & Drop)."""
+        if self.transcribiendo: return
+        
+        # splitlist maneja correctamente las rutas con espacios enviadas por Windows
+        files = self.root.tk.splitlist(event.data)
+        if not files: return
+        
+        data = files[0] # Procesamos el primer elemento detectado
+            
+        if os.path.isdir(data):
+            self.carpeta_var.set(data)
+            self._log_message(f"{_('log.folder_detected')}: {data}")
+        elif os.path.isfile(data):
+            parent = os.path.dirname(data)
+            self.carpeta_var.set(parent)
+            self._log_message(f"{_('log.file_detected')}. {_('log.selecting_parent')}: {parent}")
 
     def bloquear_botones(self):
         self.transcribiendo = True

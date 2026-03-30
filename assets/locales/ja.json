@@ -11,6 +11,7 @@
     "button.clear": "クリア",
     "button.exit": "終了",
     "button.close": "閉じる",
+    "button.open": "開く",
     "button.accept": "承認",
     "button.yes": "はい",
     "button.no": "いいえ",
@@ -20,5 +21,8 @@
     "dialog.done.title": "プロセス完了",
     "error.invalid_folder": "有効なフォルダーを選択してください",
     "log.starting": "🚀 開始しています...",
+    "log.folder_detected": "📁 フォルダが検出されました",
+    "log.file_detected": "📄 ファイルが検出されました",
+    "log.selecting_parent": "親フォルダを選択しています",
     "info.developed_by": "開発者: \nPablo Téllez A.\n\nTarija - 2026."
 }

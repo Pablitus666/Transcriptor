@@ -41,6 +41,7 @@ El sistema aprovecha la **GPU (NVIDIA CUDA)** para reducir los tiempos de proces
 
 La aplicación cuenta con:
 
+* **Sistema Drag & Drop**: Permite arrastrar una carpeta o un archivo de audio directamente a la interfaz para cargarlos automáticamente.
 * Selección de carpeta de audios y opcionalmente plantilla DOCX.
 * Selector de modelo (small, medium, large-v3).
 * **Selector de Género Profesional**: Define si la etiqueta del entrevistador es "Psicólogo" o "Psicóloga".
@@ -119,3 +120,4 @@ Software Developer
 ✔ En desarrollo (Fase Beta)
 ✔ Motor de GPU funcional
 ✔ Lógica gramatical activa
+va

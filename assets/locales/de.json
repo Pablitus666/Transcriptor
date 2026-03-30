@@ -11,6 +11,7 @@
     "button.clear": "Löschen",
     "button.exit": "Beenden",
     "button.close": "Schließen",
+    "button.open": "Öffnen",
     "button.accept": "Akzeptieren",
     "button.yes": "Ja",
     "button.no": "Nein",
@@ -20,5 +21,8 @@
     "dialog.done.title": "Prozess abgeschlossen",
     "error.invalid_folder": "Wählen Sie einen gültigen Ordner aus",
     "log.starting": "🚀 Startet...",
+    "log.folder_detected": "📁 Ordner erkannt",
+    "log.file_detected": "📄 Datei erkannt",
+    "log.selecting_parent": "Übergeordneten Ordner auswählen",
     "info.developed_by": "Entwickelt von: \nPablo Téllez A.\n\nTarija - 2026."
 }

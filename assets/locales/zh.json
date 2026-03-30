@@ -11,6 +11,7 @@
     "button.clear": "清除",
     "button.exit": "退出",
     "button.close": "关闭",
+    "button.open": "打开",
     "button.accept": "接受",
     "button.yes": "是",
     "button.no": "否",
@@ -20,5 +21,8 @@
     "dialog.done.title": "处理完成",
     "error.invalid_folder": "请选择一个有效的文件夹",
     "log.starting": "🚀 正在启动...",
+    "log.folder_detected": "📁 检测到文件夹",
+    "log.file_detected": "📄 检测到文件",
+    "log.selecting_parent": "选择上级文件夹",
     "info.developed_by": "开发者：\nPablo Téllez A.\n\nTarija - 2026."
 }

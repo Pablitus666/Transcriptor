@@ -11,6 +11,7 @@
     "button.clear": "Limpiar",
     "button.exit": "Salir",
     "button.close": "Cerrar",
+    "button.open": "Abrir",
     "button.accept": "Aceptar",
     "button.yes": "Sí",
     "button.no": "No",
@@ -20,5 +21,8 @@
     "dialog.done.title": "Proceso Completado",
     "error.invalid_folder": "Selecciona una carpeta válida",
     "log.starting": "🚀 Iniciando...",
+    "log.folder_detected": "📁 Carpeta detectada",
+    "log.file_detected": "📄 Archivo detectado",
+    "log.selecting_parent": "Seleccionando carpeta superior",
     "info.developed_by": "Desarrollado por: \nPablo Téllez A.\n\nTarija - 2026."
 }

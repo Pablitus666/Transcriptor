@@ -17,8 +17,6 @@ class TranscriptorOrchestrator:
     """
     def __init__(self, queue_callback: Optional[Callable] = None):
         self.queue = queue_callback
-        self.output_dir = "output"
-        os.makedirs(self.output_dir, exist_ok=True)
 
     def _log(self, msg: str):
         if self.queue:
@@ -33,12 +31,13 @@ class TranscriptorOrchestrator:
         extensions = (".wav", ".mp3", ".flac", ".m4a")
         return [f for f in os.listdir(folder_path) if f.lower().endswith(extensions)]
 
-    def get_unprocessed_files(self, all_files: list) -> list:
-        """Filtra archivos que ya tienen su .docx generado."""
+    def get_unprocessed_files(self, folder_path: str, all_files: list) -> list:
+        """Filtra archivos que ya tienen su .docx generado en la misma carpeta."""
+        # Detectar archivos que ya existen en la carpeta de origen
         processed = {
-            os.path.splitext(f)[0].replace('_transcrito', '').lower().strip()
-            for f in os.listdir(self.output_dir)
-            if f.lower().endswith('_transcrito.docx')
+            f.replace('ENTREVISTA INFORMATIVA_', '').replace('.docx', '').lower().strip()
+            for f in os.listdir(folder_path)
+            if f.lower().startswith('entrevista informativa_') and f.lower().endswith('.docx')
         }
         return [
             f for f in all_files 
@@ -56,7 +55,7 @@ class TranscriptorOrchestrator:
             if self.queue: self.queue(('done', "No se encontraron audios compatibles."))
             return
 
-        to_process = self.get_unprocessed_files(all_audios)
+        to_process = self.get_unprocessed_files(folder, all_audios)
         if not to_process:
             if self.queue: self.queue(('done', "✅ ¡Todos los audios ya han sido transcritos!"))
             return
@@ -151,8 +150,9 @@ class TranscriptorOrchestrator:
                 refined = refinar_turnos(smoothed, prof_gender)
                 final_segments = fusionar(refined)
 
-                # Exportación
-                docx_path = os.path.join(self.output_dir, f"{base_name}_transcrito.docx")
+                # Exportación con nombre profesional automatizado DIRECTO en la carpeta del audio
+                docx_filename = f"ENTREVISTA INFORMATIVA_{base_name}.docx"
+                docx_path = os.path.join(folder, docx_filename)
                 export_to_docx(final_segments, docx_path, template)
                 
             self._log(f"🎊 ¡Pipeline Élite V1.0 finalizado con éxito! ({total_files} archivos)")

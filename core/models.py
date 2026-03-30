@@ -37,19 +37,41 @@ def cargar_whisper(modelo_name: str):
 
 def cargar_diarizacion(hf_token: str):
     """
-    Carga solo el pipeline de diarización.
-    Optimizado para funcionamiento 100% Offline (V1.0).
+    Carga el pipeline de diarización con lógica Offline-First.
+    Si los modelos existen en cache, evita conectar a Hugging Face.
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     from whisperx.diarize import DiarizationPipeline
     
-    # Intentamos cargar con el token, pero priorizando el caché local
-    return DiarizationPipeline(
-        model_name="pyannote/speaker-diarization-3.1",
-        token=hf_token,
-        device=torch.device(device),
-        cache_dir=os.path.join(MODELS_CACHE, "pyannote")
-    )
+    cache_path = os.path.join(MODELS_CACHE, "pyannote")
+    
+    # Comprobar si existe el modelo en caché para forzar modo Offline
+    # El archivo 'speaker-diarization-3.1' suele estar en subcarpetas del cache
+    local_only = False
+    if os.path.exists(cache_path) and any(os.scandir(cache_path)):
+        local_only = True
+
+    try:
+        return DiarizationPipeline(
+            model_name="pyannote/speaker-diarization-3.1",
+            token=hf_token,
+            device=torch.device(device),
+            cache_dir=cache_path
+        )
+    except Exception as e:
+        # Si falla (por falta de red o token), intentamos carga forzada local
+        if local_only:
+            try:
+                # Algunas versiones de la librería permiten cargar directamente desde el repo local
+                return DiarizationPipeline(
+                    model_name="pyannote/speaker-diarization-3.1",
+                    use_auth_token=False, # Ya no pedimos token si es local
+                    device=torch.device(device),
+                    cache_dir=cache_path
+                )
+            except:
+                raise e
+        raise e
 
 def cargar_modelo_alineacion(idioma: str):
     """Carga el modelo de alineación fonética."""

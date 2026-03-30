@@ -13,7 +13,7 @@ class StyledDialog:
         "question": "❓"
     }
 
-    def __init__(self, parent, title, message, dialog_type="info", image_manager=None):
+    def __init__(self, parent, title, message, dialog_type="info", image_manager=None, folder_path=None):
         self.BG_COLOR = "#023047"
         self.TEXT_COLOR = "white"
         self.ACCENT_COLOR = "#fcbf49"
@@ -23,6 +23,7 @@ class StyledDialog:
         self.dialog_type = dialog_type
         self.result = False
         self.image_manager = image_manager
+        self.folder_path = folder_path
 
         self.dialog = tk.Toplevel(parent)
         self.dialog.withdraw()
@@ -65,15 +66,35 @@ class StyledDialog:
         btn_frame.pack(side=tk.BOTTOM, pady=(0, 20))
 
         boton_path = resources.image_path("boton.png")
+        boton_folder_path = resources.image_path("boton1.png")
 
-        if self.dialog_type in ["info", "error", "success", "warning"]:
+        if self.dialog_type == "success" and self.folder_path:
+            # Botón Abrir Carpeta con la imagen especial
+            btn_abrir = create_image_button(btn_frame, _("button.open"), self.handle_open_folder, self.image_manager, boton_folder_path, (140, 42), font=(self.FONT_FAMILY, 10, "bold"))
+            btn_abrir.pack(side=tk.LEFT, padx=10)
+            
+            # Botón Cerrar normal
+            btn_cerrar = create_image_button(btn_frame, _("button.accept"), self.handle_no, self.image_manager, boton_path, (120, 38), font=(self.FONT_FAMILY, 9, "bold"))
+            btn_cerrar.pack(side=tk.LEFT, padx=10)
+        
+        elif self.dialog_type in ["info", "error", "success", "warning"]:
             btn_aceptar = create_image_button(btn_frame, _("button.accept"), self.handle_no, self.image_manager, boton_path, (120, 38), font=(self.FONT_FAMILY, 9, "bold"))
             btn_aceptar.pack()
+        
         elif self.dialog_type == "question":
             btn_si = create_image_button(btn_frame, _("button.yes"), self.handle_yes, self.image_manager, boton_path, (100, 38), font=(self.FONT_FAMILY, 9, "bold"))
             btn_si.pack(side=tk.LEFT, padx=8)
             btn_no = create_image_button(btn_frame, _("button.no"), self.handle_no, self.image_manager, boton_path, (100, 38), font=(self.FONT_FAMILY, 9, "bold"))
             btn_no.pack(side=tk.RIGHT, padx=8)
+
+    def handle_open_folder(self):
+        """Abre la carpeta de resultados en el Explorador de Windows."""
+        if self.folder_path and os.path.exists(self.folder_path):
+            try:
+                os.startfile(os.path.normpath(self.folder_path))
+            except:
+                pass
+        self.dialog.destroy()
 
     def handle_yes(self):
         self.result = True

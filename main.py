@@ -19,7 +19,8 @@ def main():
     except:
         pass
 
-    root = tk.Tk()
+    from tkinterdnd2 import TkinterDnD
+    root = TkinterDnD.Tk()
     root.withdraw() # Ocultar inmediatamente para evitar parpadeo
     
     try:

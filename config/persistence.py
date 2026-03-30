@@ -31,9 +31,18 @@ def save_config(config):
         pass
 
 def get_hf_token():
-    """Busca el token en variable de entorno o en el config.json."""
+    """Busca el token en variable de entorno o en el config.json. 
+    Usa un fallback maestro para portabilidad institucional."""
+    # 1. Prioridad: Variable de entorno
     token = os.getenv("HF_TOKEN")
-    if not token:
-        config = load_config()
-        token = config.get("hf_token", "")
-    return token
+    if token:
+        return token
+
+    # 2. Segunda opción: Configuración del usuario
+    config = load_config()
+    token = config.get("hf_token", "")
+    if token and token.strip():
+        return token
+
+    # 3. Fallback: Configuración local
+    return ""

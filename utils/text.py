@@ -158,29 +158,26 @@ def capitalizacion_inteligente(texto: str) -> str:
     palabras = texto.split()
     if not palabras: return ""
     resultado = []
+    
     for i, palabra in enumerate(palabras):
-        # Limpiamos puntuación para comparar
+        # Limpiamos puntuación para comparar (preservando puntuación final)
         limpia = re.sub(r"[^\wáéíóúñü]", "", palabra.lower())
+        puntuacion = palabra[len(limpia):]
         
+        # 1. Prioridad: Siglas Institucionales (Siempre MAYÚSCULAS)
         if limpia.upper() in SIGLAS_INSTITUCIONALES:
-            resultado.append(palabra.upper())
+            resultado.append(limpia.upper() + puntuacion)
             continue
             
-        encontrado = False
-        # Buscamos en el léxico global ignorando mayúsculas/minúsculas
-        limpia_lower = limpia.lower()
-        for lex in LEXICO_GLOBAL:
-            if lex.lower() == limpia_lower:
-                # Preservamos puntuación original (ej. "tarija," -> "Tarija,")
-                p_final = lex + palabra[len(limpia):]
-                resultado.append(p_final)
-                encontrado = True
-                break
+        # 2. Búsqueda rápida en el léxico global consolidado
+        if limpia in LEXICO_GLOBAL_MAP:
+            # Preservamos puntuación original (ej. "tarija," -> "Tarija,")
+            resultado.append(LEXICO_GLOBAL_MAP[limpia] + puntuacion)
+            continue
         
-        if encontrado: continue
-        
-        # Si la palabra ya venía en mayúscula (por patrones multi-palabra o Whisper), la respetamos
+        # 3. Fallback: Mantener capitalización original si es nombre propio detectado por Whisper
         if palabra and palabra[0].isupper():
+            # Pero si es una palabra común, la pasamos a minúsculas
             if limpia in STOP_WORDS_ES and i > 0:
                 resultado.append(palabra.lower())
             else:
