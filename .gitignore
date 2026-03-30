@@ -69,12 +69,3 @@ Thumbs.db
 *.vbs
 !iniciar.vbs
 !Transcriptor.vbs
-
-Thumbs.db
-
-# Binarios y ejecutables
-*.exe
-*.pkg
-*.spec
-*.vbs
-!iniciar.vbs
