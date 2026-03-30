@@ -10,17 +10,15 @@ cache/
 
 # Salidas y resultados
 output/
+ENTREVISTA INFORMATIVA.docx
+ENTREVISTA INFORMATIVA.pdf
 *.txt
-!README.txt
 !requirements.txt
 
 # Scripts de desarrollo y comparación
-compare_*.py
-extract_streets.py
-update_word_docs.py
-update_to_v1.py
-fix_manuals_*.py
-compare_transcripts.py
+*.py
+!main.py
+!worker.py
 
 # Audios de prueba (Privacidad y peso)
 *.wav
@@ -71,3 +69,12 @@ Thumbs.db
 *.vbs
 !iniciar.vbs
 !Transcriptor.vbs
+
+Thumbs.db
+
+# Binarios y ejecutables
+*.exe
+*.pkg
+*.spec
+*.vbs
+!iniciar.vbs
