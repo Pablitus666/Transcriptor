@@ -99,6 +99,7 @@ CORRECCIONES_FONETICAS_RAW = {
     r"\bberr?uga\b": "Berruga",
     r"\bnatviki\b": "snack Viki",
     r"\bparriada\b": "parrillada",
+    r"\bporr\b": "por",
     r"¿También es cierto\?": "Tome asiento",
     r"\btome asiento\b": "Tome asiento",
     r"\bhaz\s+de\s+salteñas\b": "hacer salteñas",
@@ -160,33 +161,35 @@ def capitalizacion_inteligente(texto: str) -> str:
     resultado = []
     
     for i, palabra in enumerate(palabras):
-        # Limpiamos puntuación para comparar (preservando puntuación final)
-        limpia = re.sub(r"[^\wáéíóúñü]", "", palabra.lower())
-        puntuacion = palabra[len(limpia):]
-        
+        # Capturamos prefijos (¿, ¡, (, etc.) y sufijos (., ,, ?, !, etc.)
+        match = re.match(r"^([^\wáéíóúñü]*)([\wáéíóúñü]*)([^\wáéíóúñü]*)$", palabra, re.IGNORECASE)
+        if not match:
+            resultado.append(palabra)
+            continue
+
+        prefijo, limpia_orig, sufijo = match.groups()
+        limpia = limpia_orig.lower()
+
         # 1. Prioridad: Siglas Institucionales (Siempre MAYÚSCULAS)
         if limpia.upper() in SIGLAS_INSTITUCIONALES:
-            resultado.append(limpia.upper() + puntuacion)
+            resultado.append(prefijo + limpia.upper() + sufijo)
             continue
-            
+
         # 2. Búsqueda rápida en el léxico global consolidado
         if limpia in LEXICO_GLOBAL_MAP:
-            # Preservamos puntuación original (ej. "tarija," -> "Tarija,")
-            resultado.append(LEXICO_GLOBAL_MAP[limpia] + puntuacion)
+            resultado.append(prefijo + LEXICO_GLOBAL_MAP[limpia] + sufijo)
             continue
-        
-        # 3. Fallback: Mantener capitalización original si es nombre propio detectado por Whisper
-        if palabra and palabra[0].isupper():
-            # Pero si es una palabra común, la pasamos a minúsculas
-            if limpia in STOP_WORDS_ES and i > 0:
-                resultado.append(palabra.lower())
-            else:
-                resultado.append(palabra)
-        else:
-            resultado.append(palabra)
-            
-    return " ".join(resultado)
 
+        # 3. Fallback: Mantener capitalización original o corrección de Stop Words
+        if limpia_orig and limpia_orig[0].isupper():
+            if limpia in STOP_WORDS_ES and i > 0:
+                resultado.append(prefijo + limpia_orig.lower() + sufijo)
+            else:
+                resultado.append(prefijo + limpia_orig + sufijo)
+        else:
+            resultado.append(prefijo + limpia_orig + sufijo)
+
+    return " ".join(resultado)
 def corregir_texto(t: str) -> str:
     """Aplica correcciones fonéticas usando patrones pre-compilados."""
     for pattern, replacement in CORRECCIONES_COMPILADAS:

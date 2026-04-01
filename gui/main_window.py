@@ -33,11 +33,11 @@ class TranscriptorGUI:
         self.image_manager = ImageManager(self.root)
         self.config = persistence.load_config()
 
-        # PERSISTENCIA V1.0: Solo se recuerda la plantilla DOCX. 
-        # Carpeta y género profesional siempre por defecto al iniciar.
+        # Carpeta, plantilla y gÃ©nero profesional siempre por defecto al iniciar.
         self.carpeta_var = tk.StringVar(value="")
-        self.plantilla_var = tk.StringVar(value=self.config.get("last_template", ""))
+        self.plantilla_var = tk.StringVar(value="")
         self.genero_profesional_var = tk.StringVar(value=_("role.psychologist_f"))
+
         
         # Persistimos también el modelo y el token de Hugging Face
         self.modelo_var = tk.StringVar(value=self.config.get("model", "large-v3"))
@@ -67,6 +67,9 @@ class TranscriptorGUI:
         # Registrar Drag & Drop
         self.entry_carpeta.drop_target_register(DND_FILES)
         self.entry_carpeta.dnd_bind('<<Drop>>', self._handle_drop)
+        
+        self.entry_plantilla.drop_target_register(DND_FILES)
+        self.entry_plantilla.dnd_bind('<<Drop>>', self._handle_template_drop)
 
         self.root.bind("<Delete>", self.limpiar_campos)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -267,7 +270,13 @@ class TranscriptorGUI:
     def limpiar_campos(self, event=None):
         if self.transcribiendo: return
         self.carpeta_var.set("")
+        self.plantilla_var.set("")
         self.progreso['value'] = 0
+        
+        # Limpiar el Ã¡rea de logs
+        self.log_text.configure(state="normal")
+        self.log_text.delete("1.0", tk.END)
+        self.log_text.configure(state="disabled")
 
     def _handle_drop(self, event):
         """Maneja el evento de soltar archivos o carpetas (Drag & Drop)."""
@@ -286,6 +295,19 @@ class TranscriptorGUI:
             parent = os.path.dirname(data)
             self.carpeta_var.set(parent)
             self._log_message(f"{_('log.file_detected')}. {_('log.selecting_parent')}: {parent}")
+
+    def _handle_template_drop(self, event):
+        """Maneja el evento de soltar la plantilla DOCX (Drag & Drop)."""
+        if self.transcribiendo: return
+        
+        files = self.root.tk.splitlist(event.data)
+        if not files: return
+        
+        data = files[0]
+        if os.path.isfile(data) and data.lower().endswith(".docx"):
+            self.plantilla_var.set(data)
+            self._log_message(f"{_('log.file_detected')}: {data}")
+            self.guardar_config_actual()
 
     def bloquear_botones(self):
         self.transcribiendo = True
@@ -315,15 +337,17 @@ class TranscriptorGUI:
     def seleccionar_carpeta(self):
         if self.transcribiendo: return
         carpeta = filedialog.askdirectory(parent=self.root)
-        if carpeta: self.carpeta_var.set(carpeta)
+        if carpeta:
+            self.carpeta_var.set(carpeta)
+            self._log_message(f"{_('log.folder_detected')}: {carpeta}")
 
     def seleccionar_plantilla(self):
         if self.transcribiendo: return
         archivo = filedialog.askopenfilename(filetypes=[("Documentos Word", "*.docx")], parent=self.root)
-        if archivo: 
+        if archivo:
             self.plantilla_var.set(archivo)
+            self._log_message(f"{_('log.file_detected')}: {archivo}")
             self.guardar_config_actual()
-
     def iniciar_transcripcion(self):
         if self.transcribiendo: return
         carpeta = self.carpeta_var.get()
