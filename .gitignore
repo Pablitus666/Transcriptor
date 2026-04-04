@@ -10,7 +10,7 @@ cache/
 
 # Salidas y resultados
 output/
-ENTREVISTA INFORMATIVA.docx
+!Plantilla.docx
 ENTREVISTA INFORMATIVA.pdf
 *.txt
 !requirements.txt
