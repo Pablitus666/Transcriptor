@@ -70,3 +70,7 @@ Thumbs.db
 *.vbs
 !iniciar.vbs
 !Transcriptor.vbs
+
+# Seguridad y Certificados
+*.pfx
+firmar_app.ps1
