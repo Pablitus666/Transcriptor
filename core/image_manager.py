@@ -61,12 +61,11 @@ class ImageManager:
                     border=border
                 )
 
-            tk_img = ImageTk.PhotoImage(pil_image)
+            tk_img = ImageTk.PhotoImage(pil_image, master=self.root)
             self._store_in_cache(cache_key, tk_img)
             return tk_img
             
-        except Exception as e:
-            print(f"❌ Error cargando {filepath}: {e}")
+        except Exception:
             return None
 
     def _store_in_cache(self, key, value):

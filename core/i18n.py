@@ -44,7 +44,7 @@ def load_translations():
                 
     except Exception as e:
         # En caso de error crítico, nos aseguramos de no romper la app
-        print(f"Error loading translations: {e}")
+        pass # Silenciamos print en consola para evitar errores charmap
 
 def _(key, **kwargs):
     """ Función de traducción tipo Gettext. """

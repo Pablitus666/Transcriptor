@@ -1,4 +1,33 @@
-# 🚀 Transcriptor — Notas de Versión 1.0
+# 🚀 Transcriptor — Notas de Versión
+
+---
+
+## 💎 Versión 1.0.1 — Edición Élite (Abril 2026)
+Esta actualización se centra en la identidad visual y la portabilidad del sistema:
+- **Icono Multi-capa de Alta Resolución:** Se ha corregido el pixelado en Windows mediante un icono de 7 capas (16px a 256px) para una nitidez absoluta en HiDPI.
+- **Portabilidad Dinámica Mejorada:** El sistema detecta su ubicación de forma inteligente, permitiendo renombrar o mover la carpeta contenedora sin romper los enlaces internos.
+- **Firma Digital SHA256:** El ejecutable oficial `Transcriptor.exe` está firmado y sellado por Walter Pablo Téllez Ayala.
+
+---
+
+## 💎 Versión 1.0.0 — Edición Élite (Lanzamiento Profesional - Marzo 2026)
+
+Esta versión marca la transición definitiva de un script de automatización a un software de **Grado Institucional Blindado**. Se han implementado capas de seguridad y profesionalismo para garantizar la integridad de la propiedad intelectual y una experiencia de usuario premium.
+
+### 🛡️ Blindaje y Protección de Código
+- **Compilación .pyd:** Todos los módulos de la aplicación (`core`, `utils`, `exporters`, `gui`) han sido convertidos a binarios protegidos.
+- **worker.pyd:** El núcleo del procesamiento asíncrono ahora es un binario blindado, ocultando la "receta" interna del motor de IA.
+
+### 🖋️ Firma Digital y Seguridad
+- **SHA256 Code Signing:** Implementación de firma digital con sello de tiempo en el instalador y el ejecutable principal.
+- **Identidad Verificada:** El software es reconocido por Windows porque esta firmado digitalmeente, eliminando alertas de seguridad sospechosas.
+
+### 🔇 Silencio Operativo (Parche Élite)
+- **Clase SilentPopen:** Inyección de un parche a nivel de sistema que silencia globalmente las ventanas de consola de FFmpeg y librerías de IA, eliminando parpadeos molestos durante el uso.
+
+### 📦 Distribución y Despliegue
+- **Instalador Inno Setup:** Nuevo instalador profesional que gestiona dependencias y crea accesos directos de forma automática.
+- **Estrategia Offline:** Separación optimizada de la caché de modelos para un instalador ágil y un funcionamiento 100% desconectado tras la instalación inicial.
 
 ---
 
@@ -8,53 +37,29 @@ Esta versión inicial establece la arquitectura base del sistema, centrada en la
 
 ---
 
-## 🎯 Mejoras Técnicas Implementadas
+## 🎯 Mejoras Técnicas Implementadas (Versión Base)
 
 ### 🧠 Motor de Lógica Gramatical
 Se ha desarrollado un sistema de control de turnos que analiza la estructura gramatical de la conversación.
-* **Funcionamiento**: Detecta signos de interrogación para anticipar cambios de orador, corrigiendo automáticamente la asignación de respuestas de la víctima que el motor de voz pudiera confundir.
+* **Funcionamiento**: Detecta signos de interrogación para anticipar cambios de orador.
 
 ### ⚛️ Fusión Atómica de Segmentos
 Implementación de un algoritmo de consolidación que unifica textos del mismo hablante.
-* **Efecto**: Elimina la redundancia de etiquetas en el documento final, generando un flujo de lectura continuo y estructurado.
 
 ### 🏎️ Integración de WhisperX y CUDA
-Migración al motor WhisperX con soporte para aceleración por hardware.
-* **Rendimiento**: Optimización para NVIDIA CUDA 12.1, permitiendo el procesamiento de audios en una fracción del tiempo original mediante el uso de la GPU.
+Optimización para NVIDIA CUDA 12.1, permitiendo el procesamiento acelerado por GPU.
 
 ### 📍 Diccionario Nacional de Bolivia
-Integración de una base de datos expandida para la normalización de texto.
-* **Datos**: 934 nombres y apellidos comunes en Bolivia y 1,120 nombres de calles de Tarija.
-* **Aplicación**: Asegura la ortografía y capitalización correcta de nombres propios y direcciones en todo el territorio nacional.
-
-### ⚡ Optimización de Rendimiento
-* **Búsqueda O(1)**: Implementación de mapas de léxico para una consulta instantánea del vocabulario, garantizando fluidez sin importar el tamaño de los diccionarios.
-
-### 🖋️ Manejo Quirúrgico de XML (DOCX)
-Uso del motor RunMatcher para la edición de archivos Word.
-* **Precisión**: Permite aplicar formatos de resaltado sin alterar las propiedades de la fuente Arial 11 ni corromper la estructura de las tablas institucionales.
-
-### 📁 Interfaz de Usuario Dinámica (Drag & Drop)
-Implementación de soporte para el arrastre de archivos desde el explorador de Windows.
-* **Productividad**: El usuario puede arrastrar una carpeta o un archivo de audio directamente al campo de entrada, eliminando la necesidad de navegar manualmente por los directorios.
-* **Lógica Inteligente**: Si se arrastra un archivo individual, el sistema selecciona automáticamente la carpeta contenedora para iniciar la búsqueda de audios.
-
----
-
-## 🏗️ Arquitectura y Estabilidad
-
-* **Procesamiento Asíncrono**: Uso de multiprocessing para evitar bloqueos en la interfaz gráfica.
-* **Internacionalización**: Soporte técnico para 9 idiomas con detección automática de locale.
-* **Seguridad de Datos**: Eliminación de la salida TXT para concentrar la integridad del proceso en el formato DOCX institucional.
+Integración de 934 nombres/apellidos comunes en Bolivia y 1,120 calles de Tarija.
 
 ---
 
 ## 👨‍💻 Créditos
 
 * **Desarrollo:** Walter Pablo Téllez Ayala
-* **Tecnología:** WhisperX + Grammatical Engine
-* **Versión:** 1.0.0 (Marzo 2026)
+* **Tecnología:** AI Blindada + WhisperX
+* **Versión:** 1.0.0 Edición Élite (Marzo 2026)
 
 ---
 
-> *Transcriptor V1.0 combina procesamiento por hardware con reglas lingüísticas para automatizar la generación de actas y entrevistas con precisión técnica.*
+> *Transcriptor Edición Élite combina seguridad binaria con inteligencia artificial de vanguardia para entornos judiciales de alta exigencia.*

@@ -36,5 +36,5 @@ numpy==1.26.4
 pandas==2.2.2
 
 # --- HERRAMIENTAS DE DISTRIBUCIÓN ---
-pyinstaller==6.6.0
+pyinstaller==6.17.0
 auto-py-to-exe==2.44.1

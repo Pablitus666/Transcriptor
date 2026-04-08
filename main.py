@@ -1,5 +1,29 @@
 import os
 import sys
+
+# ================= BLINDAJE DE RUTAS ELITE (ARRANQUE ULTRA-TEMPRANO) =================
+# Obtenemos la ruta absoluta del directorio del ejecutable/script
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Rutas clave relativas
+WHISPER_ENV_DIR = os.path.join(BASE_DIR, "whisper_env")
+SITE_PACKAGES = os.path.join(WHISPER_ENV_DIR, "Lib", "site-packages")
+PYTHON_LIB = os.path.join(WHISPER_ENV_DIR, "Lib")
+
+# InyecciÃ³n de rutas ANTES de cualquier otro import pesado
+if os.path.exists(WHISPER_ENV_DIR):
+    sys.path.insert(0, SITE_PACKAGES)
+    sys.path.insert(0, PYTHON_LIB)
+    sys.path.insert(0, BASE_DIR)
+
+# Configurar variables de entorno para procesos hijos
+os.environ["PYTHONPATH"] = BASE_DIR + os.pathsep + SITE_PACKAGES + os.pathsep + PYTHON_LIB
+os.environ["PATH"] = os.path.join(WHISPER_ENV_DIR, "Scripts") + os.pathsep + os.environ.get("PATH", "")
+
+# Ahora sÃ­, importamos lo demÃ¡s
 import multiprocessing
 import subprocess
 
@@ -20,49 +44,57 @@ class SilentPopen(_OriginalPopen):
 subprocess.Popen = SilentPopen
 
 # ================= ANCLAJE DRAG & DROP ELITE =================
-# Forzamos a Python a encontrar la librerÃ­a tkdnd que estÃ¡ en whisper_env
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-tkdnd_path = os.path.join(BASE_DIR, "whisper_env", "Lib", "site-packages", "tkinterdnd2", "tkdnd")
-
+tkdnd_path = os.path.join(SITE_PACKAGES, "tkinterdnd2", "tkdnd")
 if os.path.exists(tkdnd_path):
     os.environ["TKDND_LIBRARY"] = tkdnd_path
 
-if __name__ == "__main__":
+def main():
     if sys.platform == "win32":
         import ctypes
         try: ctypes.windll.kernel32.SetErrorMode(0x0001 | 0x0002 | 0x8000)
         except: pass
+    
     multiprocessing.freeze_support()
 
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
-
-def main():
     try:
         from ctypes import windll
         windll.shell32.SetCurrentProcessExplicitAppUserModelID('pabletez.transcriptor.v1.0')
     except: pass
 
-    from tkinterdnd2 import TkinterDnD
-    # Inicializamos la GUI con soporte extendido de Drag & Drop
-    root = TkinterDnD.Tk()
-    root.withdraw()
-    
     try:
+        from tkinterdnd2 import TkinterDnD
+        root = TkinterDnD.Tk()
+        root.withdraw()
+        
+        # Cargamos la GUI (intentarÃ¡ cargar desde .pyd o .py)
         from gui.main_window import TranscriptorGUI
         app = TranscriptorGUI(root)
         root.mainloop()
     except Exception as e:
         import traceback
         error_msg = traceback.format_exc()
-        root.deiconify()
-        root.title("Error CrÃ­tico de Arranque")
+        
         import tkinter as tk
-        text_area = tk.Text(root, height=15, width=80)
-        text_area.insert(tk.END, error_msg)
-        text_area.pack(padx=20, pady=10)
-        tk.Button(root, text="Cerrar", command=root.destroy).pack(pady=10)
-        root.mainloop()
+        from tkinter import scrolledtext
+        
+        root_err = tk.Tk()
+        root_err.title("Error CrÃ­tico de Arranque - Blindaje Activo")
+        root_err.geometry("800x600")
+        
+        lbl = tk.Label(root_err, text="Se ha detectado un error al cargar el motor:", font=("Segoe UI", 12, "bold"))
+        lbl.pack(pady=10)
+        
+        # Mostramos tambiÃ©n el sys.path para depuraciÃ³n
+        debug_info = f"BASE_DIR: {BASE_DIR}\n"
+        debug_info += f"SYS.PATH: {sys.path}\n\n"
+        debug_info += f"ERROR:\n{error_msg}"
+        
+        txt = scrolledtext.ScrolledText(root_err, width=90, height=25)
+        txt.insert(tk.END, debug_info)
+        txt.pack(padx=20, pady=10)
+        
+        tk.Button(root_err, text="Cerrar", command=root_err.destroy, width=20).pack(pady=10)
+        root_err.mainloop()
 
 if __name__ == "__main__":
     main()

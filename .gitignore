@@ -3,7 +3,7 @@ whisper_env/
 venv/
 .env
 
-# Modelos y Caché (Archivos muy pesados)
+# Modelos y CachÃ© (Archivos muy pesados)
 models_cache/
 cache/
 .cache/
@@ -16,8 +16,9 @@ ENTREVISTA INFORMATIVA.pdf
 !requirements.txt
 !README.txt
 
-# Scripts de desarrollo y comparación
-*.py
+# Scripts de desarrollo y comparaciÃ³n
+# Desactivado temporalmente para reparaciÃ³n
+# *.py
 !main.py
 !worker.py
 
@@ -71,6 +72,10 @@ Thumbs.db
 !iniciar.vbs
 !Transcriptor.vbs
 
-# Seguridad y Certificados
+# Seguridad y Certificados (Walter Pablo Téllez Ayala)
 *.pfx
+*.cer
+*.p12
+*.snk
 firmar_app.ps1
+Walter_Pablo_Tellez_Ayala_CodeSigning.*

@@ -1,4 +1,5 @@
-import os
+﻿import os
+import subprocess
 import sys
 import multiprocessing
 import queue
@@ -29,19 +30,19 @@ class TranscriptorGUI:
         self.root.title(_("app.title"))
         self.root.configure(bg=BG_COLOR)
 
-        # Inicializar el motor visual modular e internacionalización
+        # Inicializar el motor visual modular e internacionalizaciÃ³n
         self.image_manager = ImageManager(self.root)
         self.config = persistence.load_config()
 
-        # Carpeta, plantilla y gÃ©nero profesional siempre por defecto al iniciar.
-        self.carpeta_var = tk.StringVar(value="")
-        self.plantilla_var = tk.StringVar(value="")
-        self.genero_profesional_var = tk.StringVar(value=_("role.psychologist_f"))
+        # Carpeta, plantilla y gÃƒÂ©nero profesional siempre por defecto al iniciar.
+        # ANCLAJE EXPLÃƒÂCITO AL ROOT PARA EVITAR VENTANAS FANTASMA
+        self.carpeta_var = tk.StringVar(master=self.root, value="")
+        self.plantilla_var = tk.StringVar(master=self.root, value="")
+        self.genero_profesional_var = tk.StringVar(master=self.root, value=_("role.psychologist_f"))
 
-        
-        # Persistimos también el modelo y el token de Hugging Face
-        self.modelo_var = tk.StringVar(value=self.config.get("model", "large-v3"))
-        self.hf_token_var = tk.StringVar(value=self.config.get("hf_token", ""))
+        # Persistimos tambiÃƒÂ©n el modelo y el token de Hugging Face
+        self.modelo_var = tk.StringVar(master=self.root, value=self.config.get("model", "large-v3"))
+        self.hf_token_var = tk.StringVar(master=self.root, value=self.config.get("hf_token", ""))
         self.transcribiendo = False
         
         # Rutas de assets
@@ -55,7 +56,7 @@ class TranscriptorGUI:
         except:
             pass
 
-        self.progress_queue = multiprocessing.Queue()
+        self.progress_queue = queue.Queue()
         self.proceso_hijo = None
 
         ancho, alto = 870, 670
@@ -75,11 +76,11 @@ class TranscriptorGUI:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.check_queue()
         
-        # Mostrar ventana solo cuando esté lista y centrada
+        # Mostrar ventana solo cuando estÃƒÂ© lista y centrada
         self.root.deiconify()
 
     def on_closing(self):
-        # Guardar configuración antes de cerrar
+        # Guardar Configuración antes de cerrar
         self.guardar_config_actual()
         if self.transcribiendo:
             dialog = StyledDialog(self.root, _("dialog.exit.title"), 
@@ -101,7 +102,7 @@ class TranscriptorGUI:
         persistence.save_config(self.config)
 
     def mostrar_config_token(self):
-        """Diálogo profesional para configurar el token de Hugging Face sin parpadeos."""
+        """DiÃ¡logo profesional para configurar el token de Hugging Face sin parpadeos."""
         if self.transcribiendo: return
         
         dialog_win = tk.Toplevel(self.root)
@@ -169,7 +170,7 @@ class TranscriptorGUI:
                     elif command == 'done':
                         self.desbloquear_botones()
                         self.progreso['value'] = 100
-                        # Pasar la carpeta actual para que el diálogo pueda abrirla
+                        # Pasar la carpeta actual para que el diÃ¡logo pueda abrirla
                         StyledDialog(self.root, _("dialog.done.title"), str(data), 
                                      dialog_type="success", image_manager=self.image_manager,
                                      folder_path=self.carpeta_var.get())
@@ -273,7 +274,7 @@ class TranscriptorGUI:
         self.plantilla_var.set("")
         self.progreso['value'] = 0
         
-        # Limpiar el Ã¡rea de logs
+        # Limpiar el ÃƒÂ¡rea de logs
         self.log_text.configure(state="normal")
         self.log_text.delete("1.0", tk.END)
         self.log_text.configure(state="disabled")
@@ -354,16 +355,77 @@ class TranscriptorGUI:
         plantilla = self.plantilla_var.get()
         modelo = self.modelo_var.get()
         genero_profesional = self.genero_profesional_var.get()
+
         if not all([carpeta, os.path.isdir(carpeta)]):
             StyledDialog(self.root, _("dialog.error.title"), _("error.invalid_folder"), dialog_type="error", image_manager=self.image_manager)
             return
+
         self.bloquear_botones()
         self.guardar_config_actual()
         self.progreso['value'] = 0
         self._log_message(_("log.starting"))
-        from worker import run_transcription_process
-        self.proceso_hijo = multiprocessing.Process(target=run_transcription_process, args=(self.progress_queue, carpeta, plantilla, modelo, genero_profesional), daemon=True)
-        self.proceso_hijo.start()
+
+        # Determinar la ruta al ejecutable de Python del entorno portÃƒÂ¡til
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        python_exe = os.path.join(base_dir, "whisper_env", "Scripts", "python.exe")
+        worker_script = os.path.join(base_dir, "worker.py")
+
+        # Lanzar el proceso de trabajo usando el Python del entorno portÃƒÂ¡til
+        try:
+            # Pasamos los argumentos necesarios al worker.py
+            cmd = [
+                python_exe, 
+                worker_script, 
+                "--folder", carpeta,
+                "--template", plantilla,
+                "--model", modelo,
+                "--gender", genero_profesional
+            ]
+            
+            # Forzar entorno UTF-8 para el proceso hijo
+            env = os.environ.copy()
+            env["PYTHONIOENCODING"] = "utf-8"
+            
+            # Usamos nuestra clase SilentPopen para evitar ventanas de consola
+            self.proceso_hijo = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True, encoding="utf-8",
+                bufsize=1,
+                universal_newlines=True,
+                env=env
+            )
+            
+            # Iniciar un hilo para leer la salida del proceso
+            import threading
+            def read_output():
+                for line in iter(self.proceso_hijo.stdout.readline, ""):
+                    line = line.strip()
+                    if line.startswith("PROG:"):
+                        try: self.progress_queue.put(float(line.split(":")[1]))
+                        except: pass
+                    elif line.startswith("LOG:"):
+                        self.progress_queue.put(('log', line.split(":", 1)[1].strip()))
+                    elif line.startswith("ERROR:"):
+                        self.progress_queue.put(('error', line.split(":", 1)[1].strip()))
+                    elif line.startswith("DONE:"):
+                        self.progress_queue.put(('done', line.split(":", 1)[1].strip()))
+                
+                self.proceso_hijo.stdout.close()
+                return_code = self.proceso_hijo.wait()
+                if return_code != 0 and not self.transcribiendo:
+                    self.progress_queue.put(('error', f"El proceso terminÃƒÂ³ inesperadamente con cÃƒÂ³digo {return_code}"))
+
+            threading.Thread(target=read_output, daemon=True).start()
+
+        except Exception as e:
+            self.desbloquear_botones()
+            StyledDialog(self.root, _("dialog.error.title"), f"Error al lanzar el proceso: {str(e)}", dialog_type="error", image_manager=self.image_manager)
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()

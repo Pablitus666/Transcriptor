@@ -1,7 +1,12 @@
 import os
+import sys
 import json
+from core import resources
 
-CONFIG_FILE = "config.json"
+# ================= BLINDAJE DE RUTA DE CONFIGURACION ELITE =================
+# La ruta base ahora es 100% dinámica gracias al motor central de recursos
+BASE_DIR = resources.get_base_path()
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 
 def load_config():
     """Carga la configuración desde config.json."""
