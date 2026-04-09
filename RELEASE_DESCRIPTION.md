@@ -25,9 +25,10 @@ Esta versión marca la transición definitiva de un script de automatización a 
 ### 🔇 Silencio Operativo (Parche Élite)
 - **Clase SilentPopen:** Inyección de un parche a nivel de sistema que silencia globalmente las ventanas de consola de FFmpeg y librerías de IA, eliminando parpadeos molestos durante el uso.
 
-### 📦 Distribución y Despliegue
-- **Instalador Inno Setup:** Nuevo instalador profesional que gestiona dependencias y crea accesos directos de forma automática.
-- **Estrategia Offline:** Separación optimizada de la caché de modelos para un instalador ágil y un funcionamiento 100% desconectado tras la instalación inicial.
+## 📦 Distribución Profesional
+- **Paquete Portable (.zip):** Disponible en la sección de activos de esta release. Contiene el entorno blindado listo para usar.
+- **Ejecutable Firmado:** Use `Transcriptor.exe` como punto de entrada único. La firma digital garantiza que el código no ha sido alterado y es de autoría verificada.
+- **Nota de Integridad:** Asegúrese de no separar el archivo `.exe` de sus carpetas de soporte (`whisper_env`, `core`, etc.), ya que el sistema depende de su estructura interna blindada.
 
 ---
 
