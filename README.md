@@ -86,7 +86,7 @@ Transcriptor/
 
 1. **Descarga:** Diríjase a la sección de [Releases](https://github.com/Pablitus666/Transcriptor/releases) y descargue el archivo `Transcriptor.zip`.
 2. **Descompresión:** Extraiga el contenido del `.zip` en una carpeta local (ej. Escritorio o C:\Transcriptor). **Es vital mantener todos los archivos y carpetas juntos para el correcto funcionamiento.**
-3. **Ejecución:** Inicie el programa mediante `Transcriptor.exe`. Al ser un archivo firmado digitalmente por Walter Pablo Téllez Ayala, Windows lo reconocerá como software seguro.
+3. **Ejecución:** Inicie el programa mediante `Transcriptor.exe`. Al ser un archivo firmado digitalmente, Windows lo reconocerá como software seguro.
 4. **Modelos:** Copie su carpeta `models_cache` al directorio raíz del programa para habilitar el procesamiento 100% offline.
 
 ---

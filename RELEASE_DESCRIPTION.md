@@ -6,7 +6,7 @@
 Esta actualización se centra en la identidad visual y la portabilidad del sistema:
 - **Icono Multi-capa de Alta Resolución:** Se ha corregido el pixelado en Windows mediante un icono de 7 capas (16px a 256px) para una nitidez absoluta en HiDPI.
 - **Portabilidad Dinámica Mejorada:** El sistema detecta su ubicación de forma inteligente, permitiendo renombrar o mover la carpeta contenedora sin romper los enlaces internos.
-- **Firma Digital SHA256:** El ejecutable oficial `Transcriptor.exe` está firmado y sellado.
+- **Firma Digital SHA256:** El ejecutable oficial `Transcriptor.exe` está firmado y sellado digitalmente.
 
 ---
 
@@ -59,7 +59,7 @@ Integración de 934 nombres/apellidos comunes en Bolivia y 1,120 calles de Tarij
 
 * **Desarrollo:** Walter Pablo Téllez Ayala
 * **Tecnología:** AI Blindada + WhisperX
-* **Versión:** 1.0.0 Edición Élite (Marzo 2026)
+* **Versión:** 1.0.1 Edición Élite (Marzo 2026)
 
 ---
 
