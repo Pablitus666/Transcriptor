@@ -6,7 +6,7 @@
 Esta actualización se centra en la identidad visual y la portabilidad del sistema:
 - **Icono Multi-capa de Alta Resolución:** Se ha corregido el pixelado en Windows mediante un icono de 7 capas (16px a 256px) para una nitidez absoluta en HiDPI.
 - **Portabilidad Dinámica Mejorada:** El sistema detecta su ubicación de forma inteligente, permitiendo renombrar o mover la carpeta contenedora sin romper los enlaces internos.
-- **Firma Digital SHA256:** El ejecutable oficial `Transcriptor.exe` está firmado y sellado por Walter Pablo Téllez Ayala.
+- **Firma Digital SHA256:** El ejecutable oficial `Transcriptor.exe` está firmado y sellado.
 
 ---
 
