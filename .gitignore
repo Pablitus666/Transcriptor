@@ -3,7 +3,7 @@ whisper_env/
 venv/
 .env
 
-# Modelos y CachÃ© (Archivos muy pesados)
+# Modelos y Caché (Archivos muy pesados)
 models_cache/
 cache/
 .cache/
@@ -16,8 +16,9 @@ ENTREVISTA INFORMATIVA.pdf
 !requirements.txt
 !README.txt
 
-# Scripts de desarrollo y comparaciÃ³n
-# Desactivado temporalmente para reparaciÃ³n
+# Scripts de desarrollo y comparación
+# Solo permitimos main, worker y archivos de lógica específicos
+# Desactivado temporalmente para reparación
 # *.py
 !main.py
 !worker.py
@@ -29,7 +30,7 @@ ENTREVISTA INFORMATIVA.pdf
 *.m4a
 *.flac
 
-# Python
+# Python (Compilados y carpetas de sistema)
 __pycache__/
 *.py[cod]
 *$py.class
@@ -63,9 +64,13 @@ wheels/
 config.json
 .DS_Store
 Thumbs.db
+*.zip
+*.rar
+*.7z
+*.tar.gz
 
-# Binarios y ejecutables
-*.exe
+# Binarios y ejecutables (con protección para caracteres invisibles)
+*.exe*
 *.pkg
 *.spec
 *.vbs

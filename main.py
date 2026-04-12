@@ -2,7 +2,6 @@ import os
 import sys
 
 # ================= BLINDAJE DE RUTAS ELITE (ARRANQUE ULTRA-TEMPRANO) =================
-# Obtenemos la ruta absoluta del directorio del ejecutable/script
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(os.path.abspath(sys.executable))
 else:
@@ -13,11 +12,18 @@ WHISPER_ENV_DIR = os.path.join(BASE_DIR, "whisper_env")
 SITE_PACKAGES = os.path.join(WHISPER_ENV_DIR, "Lib", "site-packages")
 PYTHON_LIB = os.path.join(WHISPER_ENV_DIR, "Lib")
 
-# InyecciÃ³n de rutas ANTES de cualquier otro import pesado
+# InyecciÃ³n inteligente de rutas
+sys.path.insert(0, BASE_DIR)
+
 if os.path.exists(WHISPER_ENV_DIR):
-    sys.path.insert(0, SITE_PACKAGES)
-    sys.path.insert(0, PYTHON_LIB)
-    sys.path.insert(0, BASE_DIR)
+    if getattr(sys, 'frozen', False):
+        # Si somos un EXE, aÃ±adimos las rutas de IA AL FINAL para no romper los built-ins (como tkinter)
+        sys.path.append(SITE_PACKAGES)
+        sys.path.append(PYTHON_LIB)
+    else:
+        # Si somos script, podemos ser mÃ¡s agresivos
+        sys.path.insert(1, SITE_PACKAGES)
+        sys.path.insert(2, PYTHON_LIB)
 
 # Configurar variables de entorno para procesos hijos
 os.environ["PYTHONPATH"] = BASE_DIR + os.pathsep + SITE_PACKAGES + os.pathsep + PYTHON_LIB

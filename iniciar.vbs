@@ -1,31 +1,34 @@
+' ============================================================
+' Transcriptor - Lanzador Inteligente Portátil
+' Garantiza ejecución invisible y detección de rutas absoluta.
+' ============================================================
+
 Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
 ' Obtener la ruta absoluta de la carpeta donde está este script
 basePath = fso.GetParentFolderName(WScript.ScriptFullName)
 
-' ================= VALIDAR ENTORNO Y COMPONENTES =================
-If Not fso.FolderExists(basePath & "\whisper_env") Then
-    MsgBox "No se encontró la carpeta del entorno de ejecución (whisper_env)." & vbCrLf & vbCrLf & _
-           "Asegúrese de que la carpeta del programa esté completa.", 16, "Error Crítico"
+' Definir rutas críticas de forma absoluta
+pythonExe = basePath & "\whisper_env\Scripts\pythonw.exe"
+mainScript = basePath & "\main.py"
+ps1Path = basePath & "\instalar_acceso_directo.ps1"
+
+' 1. Validar que Python exista
+If Not fso.FileExists(pythonExe) Then
+    MsgBox "Error: No se encontró el entorno de IA en:" & vbCrLf & pythonExe, 16, "Error de Instalación"
     WScript.Quit
 End If
 
-' ================= ACCESO DIRECTO (Automatización) =================
-' Intentar crear/actualizar el acceso directo en segundo plano (asíncrono)
-ps1Path = basePath & "\instalar_acceso_directo.ps1"
+' 2. Actualizar el acceso directo en segundo plano (Opcional)
 If fso.FileExists(ps1Path) Then
-    ' Ejecutamos PS de forma invisible y SIN esperar (False) para no retrasar el inicio
     shell.Run "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & ps1Path & """", 0, False
 End If
 
-' ================= EJECUCIÓN DE LA APLICACIÓN PRINCIPAL =================
-' Ejecutamos el .bat de forma totalmente invisible (0) y asíncrona (False)
-If fso.FileExists(basePath & "\ejecutar.bat") Then
-    shell.Run chr(34) & basePath & "\ejecutar.bat" & chr(34), 0, False
-Else
-    MsgBox "No se encontró el lanzador principal (ejecutar.bat) en:" & vbCrLf & basePath, 16, "Error"
-End If
+' 3. Lanzar la aplicación principal de forma TOTALMENTE INVISIBLE
+' Usamos pythonw.exe y pasamos la ruta del script entre comillas
+command = """" & pythonExe & """ """ & mainScript & """"
+shell.Run command, 0, False
 
 Set shell = Nothing
 Set fso = Nothing
