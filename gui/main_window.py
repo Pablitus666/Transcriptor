@@ -365,27 +365,23 @@ class TranscriptorGUI:
         self.progreso['value'] = 0
         self._log_message(_("log.starting"))
 
-        # Determinar la ruta al ejecutable de Python del entorno portÃƒÂ¡til
-        if getattr(sys, 'frozen', False):
-            base_dir = os.path.dirname(sys.executable)
-        else:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
-        python_exe = os.path.join(base_dir, "whisper_env", "Scripts", "python.exe")
-        worker_script = os.path.join(base_dir, "worker.py")
+        # Determinar la ruta al ejecutable de Python y al script worker (Blindaje de Portabilidad)
+        from main import BASE_DIR
+        python_exe = os.environ.get("APP_PYTHON_EXE", os.path.join(BASE_DIR, "whisper_env", "Scripts", "pythonw.exe"))
+        worker_script = os.path.join(BASE_DIR, "worker.py")
 
-        # Lanzar el proceso de trabajo usando el Python del entorno portÃƒÂ¡til
+        # Lanzar el proceso de trabajo
         try:
             # Pasamos los argumentos necesarios al worker.py
             cmd = [
-                python_exe, 
-                worker_script, 
+                python_exe,
+                "-u", # Modo unbuffered para recibir logs en tiempo real
+                worker_script,
                 "--folder", carpeta,
                 "--template", plantilla,
                 "--model", modelo,
                 "--gender", genero_profesional
             ]
-            
             # Forzar entorno UTF-8 para el proceso hijo
             env = os.environ.copy()
             env["PYTHONIOENCODING"] = "utf-8"

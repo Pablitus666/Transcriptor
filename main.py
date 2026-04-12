@@ -9,6 +9,13 @@ else:
 
 # Rutas clave relativas
 WHISPER_ENV_DIR = os.path.join(BASE_DIR, "whisper_env")
+PYTHON_EXE = os.path.join(WHISPER_ENV_DIR, "Scripts", "pythonw.exe") # Prioridad para arranque invisible
+if not os.path.exists(PYTHON_EXE):
+    PYTHON_EXE = os.path.join(WHISPER_ENV_DIR, "Scripts", "python.exe")
+
+# Exportar para procesos hijos
+os.environ["APP_PYTHON_EXE"] = PYTHON_EXE
+
 SITE_PACKAGES = os.path.join(WHISPER_ENV_DIR, "Lib", "site-packages")
 PYTHON_LIB = os.path.join(WHISPER_ENV_DIR, "Lib")
 
@@ -17,11 +24,11 @@ sys.path.insert(0, BASE_DIR)
 
 if os.path.exists(WHISPER_ENV_DIR):
     if getattr(sys, 'frozen', False):
-        # Si somos un EXE, aÃ±adimos las rutas de IA AL FINAL para no romper los built-ins (como tkinter)
+        # Si somos un EXE, SOLO añadimos site-packages para las librerías de IA (WhisperX, torch, etc.)
+        # NO añadimos PYTHON_LIB para evitar conflictos con los módulos internos del .exe (como 'platform')
         sys.path.append(SITE_PACKAGES)
-        sys.path.append(PYTHON_LIB)
     else:
-        # Si somos script, podemos ser mÃ¡s agresivos
+        # Si somos script, necesitamos ambas
         sys.path.insert(1, SITE_PACKAGES)
         sys.path.insert(2, PYTHON_LIB)
 
