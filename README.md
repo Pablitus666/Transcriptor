@@ -82,12 +82,13 @@ Transcriptor/
 
 ---
 
-## 📦 Instalación y Despliegue
+## 📦 Instalación y Despliegue (Edición Modular)
 
-1. **Descarga:** Diríjase a la sección de [Releases](https://github.com/Pablitus666/Transcriptor/releases) y descargue el archivo `Transcriptor.zip`.
-2. **Descompresión:** Extraiga el contenido del `.zip` en una carpeta local (ej. Escritorio o C:\Transcriptor). **Es vital mantener todos los archivos y carpetas juntos para el correcto funcionamiento.**
-3. **Ejecución:** Inicie el programa mediante `Transcriptor.exe`. Al ser un archivo firmado digitalmente, Windows lo reconocerá como software seguro.
-4. **Modelos:** Copie su carpeta `models_cache` al directorio raíz del programa para habilitar el procesamiento 100% offline.
+Para garantizar una instalación ligera y eficiente, el software se distribuye en formato modular:
+
+1. **Instalador Base:** Ejecute el archivo `Transcriptor_Setup_Base.exe` para instalar la estructura del programa en `C:\Transcriptor`.
+2. **Copia del Motor (Paso Crítico):** Una vez finalizada la instalación, copie las carpetas **`whisper_env`** (Motor de Python) y **`models_cache`** (Modelos de IA) desde su medio de distribución al directorio de instalación: `C:\Transcriptor`.
+3. **Ejecución:** Inicie el programa mediante el acceso directo en el escritorio. Al ser un archivo firmado digitalmente por **Walter Pablo Téllez Ayala**, Windows lo reconocerá como seguro.
 
 ---
 
