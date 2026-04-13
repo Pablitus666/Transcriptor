@@ -28,7 +28,7 @@ Esta versión marca la transición definitiva de un script de automatización a 
 ## 📦 Distribución Modular y Portátil
 Esta versión utiliza una arquitectura de **Distribución Modular** para facilitar el manejo de archivos pesados de IA:
 
-1.  **Instalador Ligero**: El archivo `Transcriptor_Setup_Base.exe` instala solo el núcleo del programa.
+1.  **Instalador Ligero**: El archivo `Transcriptor_Setup.exe` instala solo el núcleo del programa.
 2.  **Motor Externo**: Las carpetas `whisper_env` y `models_cache` se distribuyen por separado. 
 3.  **Configuración Final**: Para que el programa funcione, el usuario debe copiar estas dos carpetas dentro del directorio de instalación (`C:\Transcriptor`).
 

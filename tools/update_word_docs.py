@@ -27,7 +27,7 @@ def update_docx(file_path):
         
         p1 = doc.add_paragraph("1. ")
         p1.add_run("Instalación Base: ").bold = True
-        p1.add_run("Ejecute 'Transcriptor_Setup_Base.exe' para instalar la estructura del programa en C:\\Transcriptor.")
+        p1.add_run("Ejecute 'Transcriptor_Setup.exe' para instalar la estructura del programa en C:\\Transcriptor.")
         
         p2 = doc.add_paragraph("2. ")
         p2.add_run("Copia del Motor (CRÍTICO): ").bold = True

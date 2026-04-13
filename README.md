@@ -86,7 +86,7 @@ Transcriptor/
 
 Para garantizar una instalación ligera y eficiente, el software se distribuye en formato modular:
 
-1. **Instalador Base:** Ejecute el archivo `Transcriptor_Setup_Base.exe` para instalar la estructura del programa en `C:\Transcriptor`.
+1. **Instalador Base:** Ejecute el archivo `Transcriptor_Setup.exe` para instalar la estructura del programa en `C:\Transcriptor`.
 2. **Copia del Motor (Paso Crítico):** Una vez finalizada la instalación, copie las carpetas **`whisper_env`** (Motor de Python) y **`models_cache`** (Modelos de IA) desde su medio de distribución al directorio de instalación: `C:\Transcriptor`.
 3. **Ejecución:** Inicie el programa mediante el acceso directo en el escritorio. Al ser un archivo firmado digitalmente por **Walter Pablo Téllez Ayala**, Windows lo reconocerá como seguro.
 

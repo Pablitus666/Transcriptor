@@ -5,7 +5,7 @@
 Para que el software funcione correctamente en esta computadora, siga estos pasos:
 
 1. INSTALACIÃ“N BASE:
-   Ejecute el archivo 'Transcriptor_Setup_Base.exe'. El programa se instalarÃ¡ 
+   Ejecute el archivo 'Transcriptor_Setup.exe'. El programa se instalarÃ¡ 
    por defecto en 'C:\Transcriptor'.
 
 2. COPIA DEL MOTOR (OBLIGATORIO):
