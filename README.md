@@ -11,21 +11,22 @@
 
 ---
 
-## 💎 Novedades: Edición Élite V1.1.0
+## 💎 Novedades: Edición Élite
 Esta versión representa la evolución profesional definitiva del sistema:
-- **Instalador Integrado:** El nuevo `Transcriptor_Setup.exe` ahora incluye el entorno virtual completo (`whisper_env`), garantizando una instalación sin errores y mayor estabilidad.
-- **Firma Digital Certificada:** El instalador y el ejecutable principal cuentan con la firma digital SHA256 verificada por **Walter Pablo Téllez Ayala**.
-- **Blindaje de Lógica:** Toda la inteligencia del sistema reside en binarios `.pyd`, protegiendo la propiedad intelectual y evitando manipulaciones accidentales.
-- **Portabilidad Dinámica:** El sistema detecta automáticamente su ubicación, permitiendo el funcionamiento perfecto en cualquier unidad de disco.
-- **Identidad Visual Premium:** Icono multi-capa de alta resolución (16px a 256px) para una nitidez absoluta en Windows 10/11.
+- **Instalador Unificado:** El archivo `Transcriptor_Setup.exe` ahora incluye el entorno virtual completo (`whisper_env`), eliminando errores de rutas y simplificando la instalación.
+- **Blindaje de Lógica:** Toda la inteligencia del sistema ha sido convertida a binarios `.pyd`, protegiendo la propiedad intelectual y evitando manipulaciones.
+- **Firma Digital Profesional:** El instalador y el ejecutable principal cuentan con la firma digital SHA256 verificada por **Walter Pablo Téllez Ayala**.
+- **Identidad Visual Premium:** Nuevo icono multi-capa de alta resolución (16px a 256px) para una nitidez absoluta en Windows 10/11.
+- **Portabilidad Dinámica:** El sistema detecta automáticamente su ubicación, permitiendo el funcionamiento perfecto en cualquier unidad de disco (C:, I:, etc.).
+- **Silencio Operativo:** Implementación de la clase `SilentPopen` para eliminar cualquier parpadeo de consola durante el uso.
 
 ---
 
 ## 📌 Descripción general
 
-**Transcriptor** es una aplicación de escritorio de alto rendimiento desarrollada en **Python** para la **transcripción forense de audios**. Utiliza el motor **WhisperX** con alineación fonética y un sistema propietario de **Lógica Gramatical de Turnos**, optimizado específicamente para el contexto institucional de **Bolivia**.
+**Transcriptor V1.0** es una aplicación de escritorio desarrollada en **Python** para la **transcripción de audios**. Utiliza el motor **WhisperX** con alineación fonética y un sistema de **Lógica Gramatical de Turnos**, optimizado para el contexto de entrevistas en **Bolivia**.
 
-El sistema aprovecha la **GPU (NVIDIA CUDA)** para un procesamiento ultra-rápido y genera documentos profesionales en formato Word (.docx).
+El sistema aprovecha la **GPU (NVIDIA CUDA)** para reducir los tiempos de procesamiento y genera documentos en formato Word con identificación de oradores.
 
 ---
 
@@ -35,31 +36,60 @@ El sistema aprovecha la **GPU (NVIDIA CUDA)** para un procesamiento ultra-rápid
 
 ## 🎯 Características principales
 
-* **Motor WhisperX**: Alineación fonética con precisión a nivel de palabra (±30ms).
-* **Aceleración CUDA**: Soporte nativo para **NVIDIA CUDA 12.1**.
-* **Lógica Gramatical de Turnos (V40)**: Sistema inteligente que identifica patrones de diálogo institucional para una diarización perfecta.
-* **Diccionario Nacional**: Base de datos de nombres/apellidos de Bolivia y callejero de Tarija para capitalización automática.
-* **Motor RunMatcher**: Edición quirúrgica de XML en Word que mantiene el formato Arial 11.
-* **Internacionalización**: Interfaz disponible en 9 idiomas con detección automática.
+* Interfaz gráfica basada en **Tkinter** compatible con pantallas **HiDPI**.
+* Motor **WhisperX** con alineación fonética (sincronía a nivel de palabra).
+* **Aceleración por hardware**: Soporte nativo para **NVIDIA CUDA 12.1**.
+* **Lógica Gramatical de Turnos**: Sistema de reasignación automática que identifica el patrón "Pregunta-Respuesta" para corregir errores de diarización.
+* **Diccionario Nacional**: Integración de nombres de calles de Tarija y una base de datos de **934 nombres y apellidos** comunes en toda Bolivia.
+* **Motor RunMatcher**: Edición quirúrgica de XML en Word sin romper estilos.
+* **Soporte Multi-idioma**: Interfaz con detección automática para 9 idiomas.
 
 ---
 
 ## 🖥 Interfaz de usuario
 
-* **Drag & Drop**: Soporte para arrastrar archivos o carpetas directamente a la aplicación.
-* **Selector de Rol**: Configuración dinámica para "Psicólogo" o "Psicóloga".
-* **Progreso en Tiempo Real**: Visualización interactiva del estado del proceso.
-* **Software Blindado**: Ejecutable limpio sin ventanas de consola visibles.
+La aplicación cuenta con:
+
+* **Sistema Drag & Drop**: Carga instantánea de archivos o carpetas.
+* **Selector de Género Profesional**: Define si el entrevistador es "Psicólogo" o "Psicóloga".
+* Barra de progreso y consola de eventos en tiempo real.
+* **Software Blindado**: Ejecutable único (`Transcriptor.exe`) sin consola visible.
 
 ---
 
-## 📦 Instalación y Despliegue
+## 📷 Capturas de pantalla
 
-Para una instalación exitosa en entornos institucionales:
+<p align="center">
+  <img src="images/screenshot.png?v=2" alt="Vista previa de la aplicación" width="600"/>
+</p>
 
-1. **Instalador:** Ejecute `Transcriptor_Setup.exe`. El programa se instalará en `C:\Transcriptor` para garantizar permisos de escritura totales.
-2. **Modelos de IA (Carga de Datos):** Una vez instalado, copie la carpeta **`models_cache`** (proporcionada por el desarrollador) dentro del directorio `C:\Transcriptor`.
-3. **Ejecución:** Inicie el programa desde el acceso directo del escritorio. La firma digital garantiza la seguridad del binario.
+--- 
+
+## ⚙️ Arquitectura del sistema
+
+```
+Transcriptor/
+│
+├─ Transcriptor.exe    # Lanzador Blindado y Firmado (Punto de entrada)
+├─ worker.pyd          # Proceso trabajador blindado
+├─ core/               # Lógica blindada (.pyd)
+├─ utils/              # Léxico y diccionarios blindados (.pyd)
+├─ exporters/          # Motor DOCX blindado (.pyd)
+├─ gui/                # Componentes de interfaz blindados (.pyd)
+├─ assets/             # Imágenes y traducciones
+├─ whisper_env/        # Entorno virtual optimizado
+└─ models_cache/       # Modelos de IA (Se distribuye por separado)
+```
+
+---
+
+## 📦 Instalación y Despliegue (Edición Modular)
+
+Para garantizar una instalación ligera y eficiente, el software se distribuye en formato modular:
+
+1. **Instalador Base:** Ejecute el archivo `Transcriptor_Setup.exe` para instalar la estructura del programa en `C:\Transcriptor`.
+2. **Copia del Motor (Paso Crítico):** Una vez finalizada la instalación, copie las carpetas **`whisper_env`** (Motor de Python) y **`models_cache`** (Modelos de IA) desde su medio de distribución al directorio de instalación: `C:\Transcriptor`.
+3. **Ejecución:** Inicie el programa mediante el acceso directo en el escritorio. Al ser un archivo firmado digitalmente por **Walter Pablo Téllez Ayala**, Windows lo reconocerá como seguro.
 
 ---
 
