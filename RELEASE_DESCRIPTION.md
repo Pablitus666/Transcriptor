@@ -5,7 +5,7 @@
 ## 💎 Versión 1.1.0 — Edición Élite (Abril 2026)
 Esta actualización consolida el sistema para despliegue institucional:
 - **Instalador Unificado:** El archivo `Transcriptor_Setup.exe` ahora integra el entorno `whisper_env` completo para evitar corrupciones.
-- **Firma Digital SHA256:** El instalador cuenta con la firma digital verificada de **Walter Pablo Téllez Ayala**.
+- **Firma Digital SHA256:** El instalador cuenta con la firma digital verificada.
 - **Portabilidad Certificada:** Validado para funcionar desde unidades externas e internas (C:, I:, etc.) sin pérdida de configuración.
 - **Instalación Raíz:** El programa se instala en `C:\Transcriptor` para garantizar permisos totales de escritura.
 
