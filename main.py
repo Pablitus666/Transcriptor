@@ -9,7 +9,7 @@ else:
 
 # Rutas clave relativas
 WHISPER_ENV_DIR = os.path.join(BASE_DIR, "whisper_env")
-PYTHON_EXE = os.path.join(WHISPER_ENV_DIR, "Scripts", "pythonw.exe") # Prioridad para arranque invisible
+PYTHON_EXE = os.path.join(WHISPER_ENV_DIR, "Scripts", "pythonw.exe")
 if not os.path.exists(PYTHON_EXE):
     PYTHON_EXE = os.path.join(WHISPER_ENV_DIR, "Scripts", "python.exe")
 
@@ -17,24 +17,25 @@ if not os.path.exists(PYTHON_EXE):
 os.environ["APP_PYTHON_EXE"] = PYTHON_EXE
 
 SITE_PACKAGES = os.path.join(WHISPER_ENV_DIR, "Lib", "site-packages")
-PYTHON_LIB = os.path.join(WHISPER_ENV_DIR, "Lib")
+PYTHON_LIB_BASE = os.path.join(WHISPER_ENV_DIR, "Lib_base")
+PYTHON_LIB_VENV = os.path.join(WHISPER_ENV_DIR, "Lib") # Para site-packages si fuera el caso
 
-# InyecciÃ³n inteligente de rutas
-sys.path.insert(0, BASE_DIR)
+# Inyección inteligente de rutas (Limpieza y reconstrucción de sys.path)
+# Ponemos nuestras rutas al principio para que ignoren cualquier Python instalado en el sistema
+sys.path = [
+    BASE_DIR,
+    PYTHON_LIB_BASE,
+    os.path.join(PYTHON_LIB_BASE, "lib-tk"), # Soporte Tkinter antiguo si existiera
+    SITE_PACKAGES,
+] + [p for p in sys.path if "site-packages" not in p and "Python311" not in p]
 
-if os.path.exists(WHISPER_ENV_DIR):
-    if getattr(sys, 'frozen', False):
-        # Si somos un EXE, SOLO añadimos site-packages para las librerías de IA (WhisperX, torch, etc.)
-        # NO añadimos PYTHON_LIB para evitar conflictos con los módulos internos del .exe (como 'platform')
-        sys.path.append(SITE_PACKAGES)
-    else:
-        # Si somos script, necesitamos ambas
-        sys.path.insert(1, SITE_PACKAGES)
-        sys.path.insert(2, PYTHON_LIB)
-
-# Configurar variables de entorno para procesos hijos
-os.environ["PYTHONPATH"] = BASE_DIR + os.pathsep + SITE_PACKAGES + os.pathsep + PYTHON_LIB
+# Configurar variables de entorno para procesos hijos (Worker)
+os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
 os.environ["PATH"] = os.path.join(WHISPER_ENV_DIR, "Scripts") + os.pathsep + os.environ.get("PATH", "")
+
+# Forzar rutas de Tcl/Tk para que la interfaz se vea en cualquier PC
+os.environ["TCL_LIBRARY"] = os.path.join(WHISPER_ENV_DIR, "tcl", "tcl8.6")
+os.environ["TK_LIBRARY"] = os.path.join(WHISPER_ENV_DIR, "tcl", "tk8.6")
 
 # Ahora sÃ­, importamos lo demÃ¡s
 import multiprocessing
@@ -52,9 +53,16 @@ class SilentPopen(_OriginalPopen):
                 kwargs['startupinfo'] = si
             if 'creationflags' not in kwargs:
                 kwargs['creationflags'] = 0
-            kwargs['creationflags'] |= 0x08000000 
+            # CREATE_NO_WINDOW (0x08000000) + DETACHED_PROCESS (0x00000008)
+            kwargs['creationflags'] |= 0x08000008
         super().__init__(*args, **kwargs)
 subprocess.Popen = SilentPopen
+
+# Desactivar telemetría y ruidos de consola de librerías de IA
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TORCH_SHOW_CPP_STACKTRACES"] = "0"
+os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # ================= ANCLAJE DRAG & DROP ELITE =================
 tkdnd_path = os.path.join(SITE_PACKAGES, "tkinterdnd2", "tkdnd")

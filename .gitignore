@@ -1,86 +1,47 @@
-# Entornos virtuales
-whisper_env/
+# === PROTECCIÓN DE PROPIEDAD INTELECTUAL Y SEGURIDAD ===
+
+# Entornos virtuales (Pesados y no portables en git)
 venv/
+whisper_env/
 .env
 
-# Modelos y Caché (Archivos muy pesados)
+# Modelos de IA (Gigantes)
 models_cache/
-cache/
-.cache/
 
-# Salidas y resultados
-output/
-ENTREVISTA INFORMATIVA.docx
-ENTREVISTA INFORMATIVA.pdf
-*.txt
-!requirements.txt
-!README.txt
-
-# Scripts de desarrollo y comparación
-# Solo permitimos main, worker y archivos de lógica específicos
-# Desactivado temporalmente para reparación
-# *.py
-!main.py
-!worker.py
-
-# Audios de prueba (Privacidad y peso)
-*.wav
-*.WAV
-*.mp3
-*.m4a
-*.flac
-
-# Python (Compilados y carpetas de sistema)
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# VS Code y editores
-.vscode/
-.idea/
-*.swp
-*.swo
-~$*.docx
-
-# Archivos de bloqueo y sistema
-.config_path.lock
-config.json
-.DS_Store
-Thumbs.db
-*.zip
-*.rar
-*.7z
-*.tar.gz
-
-# Binarios y ejecutables (con protección para caracteres invisibles)
-*.exe*
-*.pkg
-*.spec
-*.vbs
-!iniciar.vbs
-!Transcriptor.vbs
-
-# Seguridad y Certificados (Walter Pablo Téllez Ayala)
+# Certificados y Claves (¡CRÍTICO!)
 *.pfx
 *.cer
-*.p12
+*.pfx.bak
 *.snk
-firmar_app.ps1
-Walter_Pablo_Tellez_Ayala_CodeSigning.*
+*.p12
+
+# Binarios y Ejecutables (Subir a GitHub Releases, no al repo)
+*.exe
+*.dll
+*.pyd
+*.so
+*.rar
+*.zip
+*.7z
+*.iss
+*.spec
+
+# Datos y Logs
+*.log
+output/
+config.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+
+# Documentos temporales o copias
+*- copia.exe
+* - copia.*
+~*

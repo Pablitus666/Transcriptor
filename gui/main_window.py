@@ -87,8 +87,22 @@ class TranscriptorGUI:
                                   _("dialog.exit.message"),
                                   dialog_type="question", image_manager=self.image_manager)
             if dialog.show():
-                if self.proceso_hijo and self.proceso_hijo.is_alive():
-                    self.proceso_hijo.terminate()
+                # Detener el proceso hijo de forma segura y rápida
+                if self.proceso_hijo:
+                    try:
+                        # poll() devuelve None si el proceso sigue vivo
+                        if self.proceso_hijo.poll() is None:
+                            self.proceso_hijo.terminate()
+                            # Damos un instante para que termine, si no, forzamos
+                            try:
+                                self.proceso_hijo.wait(timeout=0.5)
+                            except:
+                                self.proceso_hijo.kill()
+                    except:
+                        pass
+                
+                # Forzar el cierre de la ventana inmediatamente
+                self.root.quit()
                 self.root.destroy()
         else:
             self.root.destroy()
@@ -281,11 +295,15 @@ class TranscriptorGUI:
 
     def _handle_drop(self, event):
         """Maneja el evento de soltar archivos o carpetas (Drag & Drop)."""
-        if self.transcribiendo: return
+        if self.transcribiendo: return "break"
+        
+        # SI YA HAY UNA CARPETA, NO PERMITIR CARGAR OTRA (Evitar confusión)
+        if self.carpeta_var.get():
+            return "break"
         
         # splitlist maneja correctamente las rutas con espacios enviadas por Windows
         files = self.root.tk.splitlist(event.data)
-        if not files: return
+        if not files: return "break"
         
         data = files[0] # Procesamos el primer elemento detectado
             
@@ -296,19 +314,28 @@ class TranscriptorGUI:
             parent = os.path.dirname(data)
             self.carpeta_var.set(parent)
             self._log_message(f"{_('log.file_detected')}. {_('log.selecting_parent')}: {parent}")
+            
+        return "break"
 
     def _handle_template_drop(self, event):
         """Maneja el evento de soltar la plantilla DOCX (Drag & Drop)."""
-        if self.transcribiendo: return
+        if self.transcribiendo: return "break"
+        
+        # SI YA HAY UNA PLANTILLA, NO PERMITIR CARGAR OTRA (Evitar confusión)
+        if self.plantilla_var.get():
+            return "break"
         
         files = self.root.tk.splitlist(event.data)
-        if not files: return
+        if not files: return "break"
         
         data = files[0]
+        
         if os.path.isfile(data) and data.lower().endswith(".docx"):
             self.plantilla_var.set(data)
             self._log_message(f"{_('log.file_detected')}: {data}")
             self.guardar_config_actual()
+            
+        return "break"
 
     def bloquear_botones(self):
         self.transcribiendo = True
@@ -337,6 +364,11 @@ class TranscriptorGUI:
 
     def seleccionar_carpeta(self):
         if self.transcribiendo: return
+        
+        # SI YA HAY UNA CARPETA, NO PERMITIR CARGAR OTRA
+        if self.carpeta_var.get():
+            return
+            
         carpeta = filedialog.askdirectory(parent=self.root)
         if carpeta:
             self.carpeta_var.set(carpeta)
@@ -344,6 +376,11 @@ class TranscriptorGUI:
 
     def seleccionar_plantilla(self):
         if self.transcribiendo: return
+        
+        # SI YA HAY UNA PLANTILLA, NO PERMITIR CARGAR OTRA
+        if self.plantilla_var.get():
+            return
+            
         archivo = filedialog.askopenfilename(filetypes=[("Documentos Word", "*.docx")], parent=self.root)
         if archivo:
             self.plantilla_var.set(archivo)
@@ -386,7 +423,8 @@ class TranscriptorGUI:
             env = os.environ.copy()
             env["PYTHONIOENCODING"] = "utf-8"
             
-            # Usamos nuestra clase SilentPopen para evitar ventanas de consola
+            # Usamos el flag CREATE_NO_WINDOW (0x08000000) para invisibilidad total en Windows
+            # Añadimos close_fds=True para evitar herencia de handles innecesarios que pueden abrir consolas.
             self.proceso_hijo = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -394,7 +432,9 @@ class TranscriptorGUI:
                 text=True, encoding="utf-8",
                 bufsize=1,
                 universal_newlines=True,
-                env=env
+                env=env,
+                creationflags=0x08000000,
+                close_fds=True
             )
             
             # Iniciar un hilo para leer la salida del proceso

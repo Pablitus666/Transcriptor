@@ -5,32 +5,58 @@ import argparse
 import subprocess
 from datetime import datetime
 
+# ================= SILENCIADOR GLOBAL ELITE =================
+# Este parche intercepta todas las llamadas a subprocess.Popen en el proceso hijo
+# para asegurar que herramientas como FFmpeg no disparen ventanas de consola.
+import subprocess
+_OriginalPopen = subprocess.Popen
+class SilentPopen(_OriginalPopen):
+    def __init__(self, *args, **kwargs):
+        if sys.platform == "win32":
+            if 'startupinfo' not in kwargs:
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                si.wShowWindow = 0 
+                kwargs['startupinfo'] = si
+            if 'creationflags' not in kwargs:
+                kwargs['creationflags'] = 0
+            # CREATE_NO_WINDOW (0x08000000) + DETACHED_PROCESS (0x00000008)
+            kwargs['creationflags'] |= 0x08000008
+        super().__init__(*args, **kwargs)
+subprocess.Popen = SilentPopen
+
+# Desactivar telemetría y chequeos de shell de librerías
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TORCH_SHOW_CPP_STACKTRACES"] = "0"
+
 # ================= BLINDAJE DE RUTAS ELITE =================
 # Obtenemos la ruta absoluta del directorio de forma dinámica
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(os.path.abspath(sys.executable))
 else:
-    # Si es un script o un .pyd, buscamos la raíz retrocediendo niveles
     current_file = os.path.abspath(__file__)
     BASE_DIR = os.path.dirname(current_file)
-    # Si el worker.py estuviera en una subcarpeta, subiríamos un nivel (aquí está en la raíz)
     if not os.path.exists(os.path.join(BASE_DIR, "whisper_env")):
         parent = os.path.dirname(BASE_DIR)
         if os.path.exists(os.path.join(parent, "whisper_env")):
             BASE_DIR = parent
 
-# Rutas clave relativas (INYECCIÓN DE CEREBRO)
+# Rutas clave relativas
 WHISPER_ENV_DIR = os.path.join(BASE_DIR, "whisper_env")
 SITE_PACKAGES = os.path.join(WHISPER_ENV_DIR, "Lib", "site-packages")
-PYTHON_LIB = os.path.join(WHISPER_ENV_DIR, "Lib")
+PYTHON_LIB_BASE = os.path.join(WHISPER_ENV_DIR, "Lib_base")
 
-if os.path.exists(WHISPER_ENV_DIR):
-    sys.path.insert(0, SITE_PACKAGES)
-    sys.path.insert(0, PYTHON_LIB)
-    sys.path.insert(0, BASE_DIR)
+# Aislamiento total de sys.path para el proceso hijo
+sys.path = [
+    BASE_DIR,
+    PYTHON_LIB_BASE,
+    SITE_PACKAGES,
+]
 
 # Configurar variables de entorno para procesos hijos
-os.environ["PYTHONPATH"] = BASE_DIR + os.pathsep + SITE_PACKAGES + os.pathsep + PYTHON_LIB
+os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
+os.environ["PATH"] = os.path.join(WHISPER_ENV_DIR, "Scripts") + os.pathsep + os.environ.get("PATH", "")
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # Forzar UTF-8 en los flujos de salida de Python (Blindaje definitivo contra 'charmap')
