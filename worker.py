@@ -31,12 +31,14 @@ os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 os.environ["TORCH_SHOW_CPP_STACKTRACES"] = "0"
 
 # ================= BLINDAJE DE RUTAS ELITE =================
-# Obtenemos la ruta absoluta del directorio de forma dinámica
+# Obtenemos la ruta absoluta del directorio de forma dinÃ¡mica
 if getattr(sys, 'frozen', False):
     BASE_DIR = os.path.dirname(os.path.abspath(sys.executable))
 else:
+    # Si somos un script, el BASE_DIR es donde estÃ¡ el script
     current_file = os.path.abspath(__file__)
     BASE_DIR = os.path.dirname(current_file)
+    # Si worker.py estÃ¡ en una subcarpeta (raro), subimos
     if not os.path.exists(os.path.join(BASE_DIR, "whisper_env")):
         parent = os.path.dirname(BASE_DIR)
         if os.path.exists(os.path.join(parent, "whisper_env")):
@@ -47,12 +49,13 @@ WHISPER_ENV_DIR = os.path.join(BASE_DIR, "whisper_env")
 SITE_PACKAGES = os.path.join(WHISPER_ENV_DIR, "Lib", "site-packages")
 PYTHON_LIB_BASE = os.path.join(WHISPER_ENV_DIR, "Lib_base")
 
-# Aislamiento total de sys.path para el proceso hijo
+# Aislamiento e InyecciÃ³n Inteligente de sys.path
+# Priorizamos nuestras carpetas pero mantenemos el resto del path como fallback
 sys.path = [
     BASE_DIR,
     PYTHON_LIB_BASE,
     SITE_PACKAGES,
-]
+] + [p for p in sys.path if p not in (BASE_DIR, PYTHON_LIB_BASE, SITE_PACKAGES)]
 
 # Configurar variables de entorno para procesos hijos
 os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
@@ -65,18 +68,25 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 def run_transcription_standalone():
-    parser = argparse.ArgumentParser(description="Worker de Transcripción Élite")
+    parser = argparse.ArgumentParser(description="Worker de TranscripciÃ³n Ã‰lite")
     parser.add_argument("--folder", required=True)
     parser.add_argument("--template", default="")
     parser.add_argument("--model", default="large-v3")
-    parser.add_argument("--gender", default="Psicóloga")
+    parser.add_argument("--gender", default="PsicÃ³loga")
     
     args = parser.parse_args()
 
     try:
-        # Importación directa gracias al blindaje de rutas previo
-        from core.orchestrator import TranscriptorOrchestrator
-        from config import persistence
+        # Debugging de rutas en caso de error (Solo se verÃ¡ si falla la importaciÃ³n)
+        try:
+            from core.orchestrator import TranscriptorOrchestrator
+            from config import persistence
+        except ImportError as ie:
+            sys.stdout.write(f"ERROR:Fallo de importaciÃ³n: {str(ie)}\n")
+            sys.stdout.write(f"LOG:BASE_DIR detectado: {BASE_DIR}\n")
+            sys.stdout.write(f"LOG:SYS.PATH actual: {sys.path[:3]}...\n")
+            sys.stdout.flush()
+            return
 
         hf_token = persistence.get_hf_token()
         if not hf_token:
