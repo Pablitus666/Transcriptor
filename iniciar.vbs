@@ -12,7 +12,6 @@ basePath = fso.GetParentFolderName(WScript.ScriptFullName)
 ' Definir rutas críticas de forma absoluta
 pythonExe = basePath & "\whisper_env\Scripts\pythonw.exe"
 mainScript = basePath & "\main.py"
-ps1Path = basePath & "\instalar_acceso_directo.ps1"
 
 ' 1. Validar que Python exista
 If Not fso.FileExists(pythonExe) Then
@@ -20,13 +19,7 @@ If Not fso.FileExists(pythonExe) Then
     WScript.Quit
 End If
 
-' 2. Actualizar el acceso directo en segundo plano (Opcional)
-If fso.FileExists(ps1Path) Then
-    shell.Run "powershell.exe -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & ps1Path & """", 0, False
-End If
-
-' 3. Lanzar la aplicación principal de forma TOTALMENTE INVISIBLE
-' Usamos pythonw.exe y pasamos la ruta del script entre comillas
+' 2. Lanzar la aplicación principal de forma TOTALMENTE INVISIBLE
 command = """" & pythonExe & """ """ & mainScript & """"
 shell.Run command, 0, False
 
